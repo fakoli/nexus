@@ -20,7 +20,7 @@
   "scripts": {
     "build": "tsc --build",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --build --force",
     "lint": "eslint 'packages/*/src/**/*.ts' 'extensions/*/src/**/*.ts' --ignore-pattern '**/*.test.ts'",
     "lint:fix": "eslint --fix 'packages/*/src/**/*.ts' 'extensions/*/src/**/*.ts' --ignore-pattern '**/*.test.ts'",
     "prepublishOnly": "npm run build && cd packages/ui && npx vite build"

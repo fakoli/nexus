@@ -1,0 +1,12 @@
+{
+  "name": "@nexus/agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@nexus/core": "*",
+    "@anthropic-ai/sdk": "^0.52.0",
+    "openai": "^4.80.0"
+  }
+}

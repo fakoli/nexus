@@ -1,0 +1,74 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "composite": true,
+    "paths": {
+      "@nexus/core": [
+        "./packages/core/src/index.ts"
+      ],
+      "@nexus/gateway": [
+        "./packages/gateway/src/index.ts"
+      ],
+      "@nexus/agent": [
+        "./packages/agent/src/index.ts"
+      ],
+      "@nexus/cli": [
+        "./packages/cli/src/index.ts"
+      ],
+      "@nexus/plugins": [
+        "./packages/plugins/src/index.ts"
+      ],
+      "@nexus/telegram": [
+        "./extensions/telegram/src/index.ts"
+      ],
+      "@nexus/channels": [
+        "./packages/channels/src/index.ts"
+      ],
+      "@nexus/discord": [
+        "./extensions/discord/src/index.ts"
+      ]
+    }
+  },
+  "references": [
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/agent"
+    },
+    {
+      "path": "./packages/gateway"
+    },
+    {
+      "path": "./packages/cli"
+    },
+    {
+      "path": "./packages/plugins"
+    },
+    {
+      "path": "./extensions/telegram"
+    },
+    {
+      "path": "./packages/channels"
+    },
+    {
+      "path": "./extensions/discord"
+    }
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

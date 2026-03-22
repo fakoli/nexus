@@ -1,0 +1,15 @@
+{
+  "name": "@nexus/plugins",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@nexus/core": "*",
+    "tar": "^7.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/tar": "^6.1.0"
+  }
+}

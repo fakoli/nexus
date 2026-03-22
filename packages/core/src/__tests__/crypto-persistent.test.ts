@@ -17,11 +17,14 @@ import path from "path";
 
 let tmpDir: string;
 
-beforeEach(() => {
+beforeEach(async () => {
   tmpDir = mkdtempSync(path.join(tmpdir(), "nexus-crypto-persist-"));
   process.env.NEXUS_DATA_DIR = tmpDir;
   // Ensure no env-var override bleeds between tests
   delete process.env.NEXUS_MASTER_KEY;
+  // Ensure DB tables exist before crypto operations
+  const { runMigrations } = await import("../db.js");
+  runMigrations();
 });
 
 afterEach(async () => {

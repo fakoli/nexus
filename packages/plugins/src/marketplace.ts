@@ -130,7 +130,7 @@ export async function searchPlugins(
 ): Promise<MarketplaceEntry[]> {
   const activeUrls = registryUrls.filter((url) => url !== "");
   if (activeUrls.length === 0) {
-    console.log("No plugin registry configured. Add one with: nexus plugins registry add <url>");
+    log.warn("No plugin registry configured. Add one with: nexus plugins registry add <url>");
     return [];
   }
 

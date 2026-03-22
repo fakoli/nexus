@@ -6,7 +6,6 @@
  */
 import { z } from "zod";
 import {
-  getConfig,
   setConfig,
   getAllConfig,
   NexusConfigSchema,

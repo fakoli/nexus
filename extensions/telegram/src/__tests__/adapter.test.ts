@@ -198,7 +198,7 @@ describe("TelegramAdapter", () => {
       )
       .mockImplementation(() => {});
 
-    const pollPromise = adapter.start(() => {});
+    const pollPromise = adapter.start({ channelId: "telegram", onInbound: async () => {} });
     expect(adapter.isRunning).toBe(true);
 
     await adapter.stop();
@@ -296,7 +296,7 @@ describe("TelegramAdapter", () => {
       } as unknown as Response),
     );
 
-    await adapter.sendMedia("1001", new Uint8Array([1, 2, 3]), "image/png");
+    await adapter.sendMedia("1001", Buffer.from(new Uint8Array([1, 2, 3])), "image/png");
 
     const [url] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string];
     expect(url).toContain("sendPhoto");
@@ -315,7 +315,7 @@ describe("TelegramAdapter", () => {
       } as unknown as Response),
     );
 
-    await adapter.sendMedia("1001", new Uint8Array([1, 2, 3]), "application/pdf");
+    await adapter.sendMedia("1001", Buffer.from(new Uint8Array([1, 2, 3])), "application/pdf");
 
     const [url] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [string];
     expect(url).toContain("sendDocument");
@@ -332,7 +332,7 @@ describe("TelegramAdapter", () => {
     );
 
     await expect(
-      adapter.sendMedia("1001", new Uint8Array([1]), "image/jpeg"),
+      adapter.sendMedia("1001", Buffer.from(new Uint8Array([1])), "image/jpeg"),
     ).rejects.toThrow(TelegramBotError);
 
     vi.unstubAllGlobals();

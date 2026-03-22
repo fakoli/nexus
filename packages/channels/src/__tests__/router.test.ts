@@ -29,7 +29,7 @@ function makeAdapter(id = "test_channel") {
     adapter: {
       id,
       name: "Test Channel",
-      capabilities: { dm: true, group: false, media: false, reactions: false },
+      capabilities: { dm: true, group: false, media: false, reactions: false, markdown: true },
       start: async () => {},
       stop: async () => {},
       sendReply: async (target: string, content: string) => {

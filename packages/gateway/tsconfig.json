@@ -10,6 +10,7 @@
     { "path": "../core" },
     { "path": "../agent" },
     { "path": "../channels" },
+    { "path": "../plugins" },
     { "path": "../../extensions/telegram" },
     { "path": "../../extensions/discord" }
   ]

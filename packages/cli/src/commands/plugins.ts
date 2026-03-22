@@ -73,7 +73,6 @@ function saveRegistries(urls: string[]): void {
 // ── Formatting helpers ────────────────────────────────────────────────────────
 
 function printTable(rows: string[][], headers: string[]): void {
-  const allRows = [headers, ...rows];
   const widths = headers.map((h, i) =>
     Math.max(h.length, ...rows.map((r) => (r[i] ?? "").length)),
   );

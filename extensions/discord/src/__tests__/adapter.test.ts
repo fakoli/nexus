@@ -60,7 +60,7 @@ describe("DiscordAdapter", () => {
   it("start: registers a message handler and connects the gateway", async () => {
     const { adapter, gateway } = buildAdapter();
 
-    await adapter.start();
+    await adapter.start({ channelId: "discord", onInbound: async () => {} });
 
     expect(gateway.onMessageCreate).toHaveBeenCalledOnce();
     expect(gateway.connect).toHaveBeenCalledOnce();
@@ -69,7 +69,7 @@ describe("DiscordAdapter", () => {
   it("stop: disconnects the gateway", async () => {
     const { adapter, gateway } = buildAdapter();
 
-    await adapter.start();
+    await adapter.start({ channelId: "discord", onInbound: async () => {} });
     await adapter.stop();
 
     expect(gateway.disconnect).toHaveBeenCalledOnce();
@@ -92,7 +92,7 @@ describe("DiscordAdapter", () => {
     let captured: InboundMessage | undefined;
     adapter.onMessage((m) => { captured = m; });
 
-    await adapter.start();
+    await adapter.start({ channelId: "discord", onInbound: async () => {} });
 
     // Retrieve the handler registered on the gateway mock and invoke it
     const rawHandler = (gateway.onMessageCreate as ReturnType<typeof vi.fn>).mock.calls[0][0] as
@@ -125,7 +125,7 @@ describe("DiscordAdapter", () => {
     let captured: InboundMessage | undefined;
     adapter.onMessage((m) => { captured = m; });
 
-    await adapter.start();
+    await adapter.start({ channelId: "discord", onInbound: async () => {} });
 
     const rawHandler = (gateway.onMessageCreate as ReturnType<typeof vi.fn>).mock.calls[0][0] as
       (m: DiscordMessage) => void;
@@ -144,7 +144,7 @@ describe("DiscordAdapter", () => {
     const handler = vi.fn();
     adapter.onMessage(handler);
 
-    await adapter.start();
+    await adapter.start({ channelId: "discord", onInbound: async () => {} });
 
     const rawHandler = (gateway.onMessageCreate as ReturnType<typeof vi.fn>).mock.calls[0][0] as
       (m: DiscordMessage) => void;
@@ -162,7 +162,7 @@ describe("DiscordAdapter", () => {
     const handler = vi.fn();
     adapter.onMessage(handler);
 
-    await adapter.start();
+    await adapter.start({ channelId: "discord", onInbound: async () => {} });
 
     const rawHandler = (gateway.onMessageCreate as ReturnType<typeof vi.fn>).mock.calls[0][0] as
       (m: DiscordMessage) => void;
@@ -179,7 +179,7 @@ describe("DiscordAdapter", () => {
     const handler = vi.fn();
     adapter.onMessage(handler);
 
-    await adapter.start();
+    await adapter.start({ channelId: "discord", onInbound: async () => {} });
 
     const rawHandler = (gateway.onMessageCreate as ReturnType<typeof vi.fn>).mock.calls[0][0] as
       (m: DiscordMessage) => void;
@@ -200,7 +200,7 @@ describe("DiscordAdapter", () => {
     adapter.onMessage(h1);
     adapter.onMessage(h2);
 
-    await adapter.start();
+    await adapter.start({ channelId: "discord", onInbound: async () => {} });
 
     const rawHandler = (gateway.onMessageCreate as ReturnType<typeof vi.fn>).mock.calls[0][0] as
       (m: DiscordMessage) => void;
@@ -220,7 +220,7 @@ describe("DiscordAdapter", () => {
     adapter.onMessage(throwing);
     adapter.onMessage(safe);
 
-    await adapter.start();
+    await adapter.start({ channelId: "discord", onInbound: async () => {} });
 
     const rawHandler = (gateway.onMessageCreate as ReturnType<typeof vi.fn>).mock.calls[0][0] as
       (m: DiscordMessage) => void;
@@ -237,7 +237,7 @@ describe("DiscordAdapter", () => {
     let captured: InboundMessage | undefined;
     adapter.onMessage((m) => { captured = m; });
 
-    await adapter.start();
+    await adapter.start({ channelId: "discord", onInbound: async () => {} });
 
     const rawHandler = (gateway.onMessageCreate as ReturnType<typeof vi.fn>).mock.calls[0][0] as
       (m: DiscordMessage) => void;

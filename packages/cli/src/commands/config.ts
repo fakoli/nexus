@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { runMigrations, getAllConfig, setConfigSection, NexusConfigSchema } from "@nexus/core";
+import { runMigrations, getAllConfig, setConfig, NexusConfigSchema } from "@nexus/core";
 
 const VALID_SECTIONS = ["gateway", "agent", "security"] as const;
 type ValidSection = (typeof VALID_SECTIONS)[number];
@@ -57,6 +57,6 @@ configCommand
       process.exit(1);
     }
 
-    setConfigSection(section, validated.data);
+    setConfig(section, validated.data);
     console.log(`Config section "${section}" updated.`);
   });

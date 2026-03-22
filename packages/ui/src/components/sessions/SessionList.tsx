@@ -1,6 +1,6 @@
 import { Component, For, onMount } from "solid-js";
 import { store, setStore } from "../../stores/app";
-import { loadSessions, loadHistory } from "../../stores/actions";
+import { loadSessions, loadHistory, createNewSession } from "../../stores/actions";
 import type { SessionInfo } from "../../gateway/types";
 
 type SessionRow = SessionInfo & { state?: string; channel?: string; updatedAt?: number };
@@ -27,7 +27,7 @@ const SessionList: Component = () => {
       {/* Header */}
       <div style={{ display: "flex", "align-items": "center", "justify-content": "space-between", padding: "14px 20px", "border-bottom": "1px solid #2a2a45", background: "#13132a", "flex-shrink": "0" }}>
         <span style={{ "font-weight": "600", "font-size": "15px", color: "#c0c0e0" }}>Sessions</span>
-        <button onClick={() => { setStore("session", "id", ""); setStore("session", "messages", []); setStore("ui", "tab", "chat"); }}
+        <button onClick={() => createNewSession()}
           style={{ background: "#4a9eff", border: "none", "border-radius": "8px", color: "#fff", cursor: "pointer", "font-size": "13px", "font-weight": "600", padding: "6px 14px" }}>
           + New Session
         </button>

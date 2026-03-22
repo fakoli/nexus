@@ -117,7 +117,7 @@ describe('config: getAllConfig', () => {
   });
 });
 
-describe('config: setConfigSection', () => {
+describe('config: setConfig (section storage)', () => {
   let dir: string;
 
   beforeEach(async () => {
@@ -132,9 +132,9 @@ describe('config: setConfigSection', () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it('delegates to setConfig', async () => {
-    const { setConfigSection, getConfig } = await import('../config.js');
-    setConfigSection('agent', { defaultModel: 'claude-opus-3' });
+  it('stores a config section and retrieves it', async () => {
+    const { setConfig, getConfig } = await import('../config.js');
+    setConfig('agent', { defaultModel: 'claude-opus-3' });
     const val = getConfig('agent') as { defaultModel: string };
     expect(val.defaultModel).toBe('claude-opus-3');
   });

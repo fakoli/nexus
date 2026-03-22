@@ -7,7 +7,7 @@
 import { z } from "zod";
 import {
   getConfig,
-  setConfigSection,
+  setConfig,
   getAllConfig,
   NexusConfigSchema,
   createLogger,
@@ -119,7 +119,7 @@ export function handleConfigSet(params: Record<string, unknown>): ResponseFrame 
     };
   }
 
-  setConfigSection(section, validated.data);
+  setConfig(section, validated.data);
   log.info({ section }, "Config section updated");
 
   return {

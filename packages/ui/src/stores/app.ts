@@ -1,5 +1,6 @@
 import { createStore } from "solid-js/store";
 import { createGatewayClient } from "../gateway/client";
+import { DEFAULT_GATEWAY_URL } from "../constants";
 import type {
   ConnectionStatus,
   Message,
@@ -54,7 +55,7 @@ export const [store, setStore] = createStore<AppStore>(initialState);
 // ── Gateway client singleton ──────────────────────────────────────────────────
 
 export const gateway = createGatewayClient(
-  "ws://localhost:18789/ws",
+  DEFAULT_GATEWAY_URL,
   import.meta.env.VITE_NEXUS_TOKEN ?? "",
   import.meta.env.VITE_NEXUS_PASSWORD ?? "",
 );
@@ -78,10 +79,27 @@ gateway.onEvent("session:message", (payload) => {
 
 // config:changed pushed by the server
 gateway.onEvent("config:changed", (payload) => {
-  const p = payload as Partial<AppStore["config"]>;
-  if (p.gateway) setStore("config", "gateway", p.gateway);
-  if (p.agent) setStore("config", "agent", p.agent);
-  if (p.security) setStore("config", "security", p.security);
+  const p = payload as { key: string; value: unknown };
+  if (p.key === "gateway") setStore("config", "gateway", p.value as Record<string, unknown>);
+  else if (p.key === "agent") setStore("config", "agent", p.value as Record<string, unknown>);
+  else if (p.key === "security") setStore("config", "security", p.value as Record<string, unknown>);
+});
+
+// agent:delta — streaming text chunks from agent.stream
+gateway.onEvent("agent:delta", (payload) => {
+  const p = payload as { sessionId?: string; type: string; text?: string };
+  if (p.type === "text" && typeof p.text === "string") {
+    // Append text to the last assistant message placeholder
+    setStore("session", "messages", (msgs) => {
+      if (msgs.length === 0) return msgs;
+      const last = msgs[msgs.length - 1];
+      if (last.role !== "assistant") return msgs;
+      const updated = { ...last, content: last.content + p.text };
+      return [...msgs.slice(0, -1), updated];
+    });
+  } else if (p.type === "done") {
+    setStore("chat", "sending", false);
+  }
 });
 
 // ── Simple tab/theme helpers (no async, exported for convenience) ─────────────

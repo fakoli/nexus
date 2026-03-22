@@ -3,13 +3,13 @@ export {
   getConfig,
   setConfig,
   getAllConfig,
-  setConfigSection,
   NexusConfigSchema,
   GatewayConfigSchema,
   AgentConfigSchema,
   SecurityConfigSchema,
+  ChannelsConfigSchema,
 } from "./config.js";
-export type { NexusConfig, GatewayConfig, AgentConfig, SecurityConfig } from "./config.js";
+export type { NexusConfig, GatewayConfig, AgentConfig, SecurityConfig, ChannelsConfig } from "./config.js";
 export { createLogger } from "./logger.js";
 export type { Logger } from "./logger.js";
 export { events } from "./events.js";

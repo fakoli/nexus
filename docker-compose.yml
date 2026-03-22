@@ -1,0 +1,12 @@
+services:
+  nexus:
+    build: .
+    ports: ["18789:18789"]
+    volumes: ["nexus-data:/root/.nexus"]
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    restart: unless-stopped
+
+volumes:
+  nexus-data:

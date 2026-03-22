@@ -1,4 +1,5 @@
 import { createSignal } from "solid-js";
+import { DEFAULT_GATEWAY_URL } from "../constants";
 import type {
   ConnectParams,
   EventFrame,
@@ -9,7 +10,7 @@ import type {
   ResponseFrame,
 } from "./types";
 
-const GATEWAY_URL = "ws://localhost:18789/ws";
+const GATEWAY_URL = DEFAULT_GATEWAY_URL;
 const CLIENT_INFO = { name: "nexus-ui", version: "0.1.0" } as const;
 
 const BACKOFF_BASE_MS = 1_000;

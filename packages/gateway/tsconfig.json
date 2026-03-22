@@ -6,5 +6,11 @@
     "composite": true
   },
   "include": ["src/**/*.ts"],
-  "references": [{ "path": "../core" }, { "path": "../agent" }]
+  "references": [
+    { "path": "../core" },
+    { "path": "../agent" },
+    { "path": "../channels" },
+    { "path": "../../extensions/telegram" },
+    { "path": "../../extensions/discord" }
+  ]
 }

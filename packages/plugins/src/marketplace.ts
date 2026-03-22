@@ -13,7 +13,7 @@ const log = createLogger("plugins:marketplace");
 // Constants
 // ---------------------------------------------------------------------------
 
-export const DEFAULT_REGISTRY_URL = "https://github.com/fakoli/fakoli-plugins";
+export const DEFAULT_REGISTRY_URL = "";
 
 /**
  * Convert a GitHub repository URL into a raw-content base URL pointing at the
@@ -128,15 +128,21 @@ export async function searchPlugins(
   query: string,
   registryUrls: string[] = [DEFAULT_REGISTRY_URL],
 ): Promise<MarketplaceEntry[]> {
+  const activeUrls = registryUrls.filter((url) => url !== "");
+  if (activeUrls.length === 0) {
+    console.log("No plugin registry configured. Add one with: nexus plugins registry add <url>");
+    return [];
+  }
+
   const q = query.toLowerCase().trim();
 
-  const results = await Promise.allSettled(registryUrls.map((url) => fetchRegistry(url)));
+  const results = await Promise.allSettled(activeUrls.map((url) => fetchRegistry(url)));
 
   const entries: MarketplaceEntry[] = [];
   for (let i = 0; i < results.length; i++) {
     const result = results[i];
     if (result.status === "rejected") {
-      log.warn({ registryUrl: registryUrls[i], error: String(result.reason) }, "Registry fetch failed — skipping");
+      log.warn({ registryUrl: activeUrls[i], error: String(result.reason) }, "Registry fetch failed — skipping");
       continue;
     }
     for (const plugin of result.value.plugins) {

@@ -218,8 +218,13 @@ describe("TelegramAdapter", () => {
       "startPolling",
     ).mockResolvedValue(undefined);
 
-    adapter.start(() => {}); // don't await
-    expect(() => adapter.start(() => {})).toThrow("already running");
+    const fakeCtx: import("@nexus/channels").ChannelContext = {
+      channelId: "telegram",
+      onInbound: async () => {},
+    };
+
+    adapter.start(fakeCtx); // don't await
+    await expect(adapter.start(fakeCtx)).rejects.toThrow("already running");
 
     await adapter.stop();
   });
@@ -272,7 +277,7 @@ describe("TelegramAdapter", () => {
       )
       .mockResolvedValue(SENT_MESSAGE);
 
-    await adapter.sendReply("1001", "plain text", { parseMode: null });
+    await adapter.sendReply("1001", "plain text", { markdown: false });
 
     const [, , opts] = sendSpy.mock.calls[0] as unknown as [string, string, { parse_mode?: string }];
     expect(opts.parse_mode).toBeUndefined();
@@ -343,26 +348,29 @@ describe("TelegramAdapter", () => {
       edited_message: { ...BASE_MSG, text: "edited text" },
     };
 
-    const received: InboundMessage[] = [];
-    const handler = (msg: InboundMessage) => { received.push(msg); };
+    const receivedTexts: string[] = [];
 
     // Directly invoke the private method to test routing without polling.
     await (
       adapter as unknown as { _handleUpdate: (u: TelegramUpdate) => Promise<void> }
     )._handleUpdate(editedUpdate);
 
-    // Handler not yet registered — nothing received.
-    expect(received).toHaveLength(0);
+    // ctx not yet registered — nothing received.
+    expect(receivedTexts).toHaveLength(0);
 
-    // Simulate handler registration then call again.
-    (adapter as unknown as { handler: MessageHandler | null }).handler = handler;
+    // Simulate ctx registration then call again.
+    const fakeCtx: import("@nexus/channels").ChannelContext = {
+      channelId: "telegram",
+      onInbound: async (_senderId: string, message: string) => {
+        receivedTexts.push(message);
+      },
+    };
+    (adapter as unknown as { ctx: import("@nexus/channels").ChannelContext | null }).ctx = fakeCtx;
     await (
       adapter as unknown as { _handleUpdate: (u: TelegramUpdate) => Promise<void> }
     )._handleUpdate(editedUpdate);
 
-    expect(received).toHaveLength(1);
-    expect(received[0].text).toBe("edited text");
+    expect(receivedTexts).toHaveLength(1);
+    expect(receivedTexts[0]).toBe("edited text");
   });
-
-  type MessageHandler = (msg: InboundMessage) => void | Promise<void>;
 });

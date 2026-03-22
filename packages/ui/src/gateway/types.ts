@@ -13,7 +13,9 @@ export type RequestMethod =
   | "chat.send"
   | "chat.history"
   | "agent.run"
+  | "agent.stream"
   | "sessions.list"
+  | "sessions.create"
   | "config.get"
   | "config.set";
 
@@ -41,7 +43,8 @@ export interface ResponseFrame {
 export type EventName =
   | "session:message"
   | "session:created"
-  | "config:changed";
+  | "config:changed"
+  | "agent:delta";
 
 export interface EventFrame {
   event: EventName;
@@ -77,6 +80,6 @@ export interface ConfigSection {
 
 export type ConnectionStatus = "disconnected" | "connecting" | "connected";
 
-export type TabName = "chat" | "sessions" | "config" | "logs";
+export type TabName = "chat" | "sessions" | "config";
 
 export type ThemeName = "dark" | "light";

@@ -4,9 +4,10 @@ import type { Message, SessionInfo } from "../gateway/types";
 // ── chat.send / agent.run ─────────────────────────────────────────────────────
 
 /**
- * Appends the user message optimistically, then calls `agent.run` to let the
- * server generate a reply. The server pushes the assistant reply back via the
- * `session:message` event which the store wires up automatically.
+ * Appends the user message optimistically, creates an empty assistant
+ * placeholder, then calls `agent.stream` to let the server stream deltas.
+ * The `agent:delta` event handler in app.ts appends text chunks to the
+ * placeholder and clears `sending` on `type: "done"`.
  */
 export async function sendMessage(text: string): Promise<void> {
   const trimmed = text.trim();
@@ -20,18 +21,26 @@ export async function sendMessage(text: string): Promise<void> {
     timestamp: Date.now(),
   };
 
-  setStore("session", "messages", (msgs) => [...msgs, userMsg]);
+  // Placeholder assistant message — deltas will be appended to this
+  const assistantPlaceholder: Message = {
+    id: crypto.randomUUID(),
+    role: "assistant",
+    content: "",
+    timestamp: Date.now(),
+  };
+
+  setStore("session", "messages", (msgs) => [...msgs, userMsg, assistantPlaceholder]);
   setStore("chat", "input", "");
   setStore("chat", "sending", true);
 
   try {
-    await gateway.request("agent.run", {
+    await gateway.request("agent.stream", {
       sessionId: store.session.id,
       message: trimmed,
     });
+    // `sending` will be set to false by the agent:delta { type: "done" } event
   } catch (err) {
     setStore("connection", "error", (err as Error).message);
-  } finally {
     setStore("chat", "sending", false);
   }
 }
@@ -100,8 +109,28 @@ export async function saveConfig(
   data: Record<string, unknown>,
 ): Promise<void> {
   try {
-    await gateway.request("config.set", { section, data });
+    await gateway.request("config.set", { section, value: data });
     setStore("config", section, data);
+  } catch (err) {
+    setStore("connection", "error", (err as Error).message);
+  }
+}
+
+// ── sessions.create ───────────────────────────────────────────────────────────
+
+/**
+ * Creates a new server session and navigates to the chat tab.
+ */
+export async function createNewSession(): Promise<void> {
+  try {
+    const payload = await gateway.request("sessions.create", { agentId: "default" });
+    const sessionId = payload.id as string | undefined;
+    if (sessionId) {
+      setStore("session", "id", sessionId);
+      setStore("session", "agentId", "default");
+      setStore("session", "messages", []);
+    }
+    setStore("ui", "tab", "chat");
   } catch (err) {
     setStore("connection", "error", (err as Error).message);
   }

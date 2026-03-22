@@ -31,10 +31,21 @@ import {
   getOrCreateAgent,
   getOrCreateSession,
   getAllConfig,
+  getConfig,
   events,
   createLogger,
   closeDb,
+  ChannelsConfigSchema,
 } from "@nexus/core";
+
+import {
+  registerAdapter,
+  startAdapter,
+  stopAllAdapters,
+  listAdapters,
+} from "@nexus/channels";
+import { TelegramAdapter } from "@nexus/telegram";
+import { DiscordAdapter } from "@nexus/discord";
 
 import {
   ConnectParams,
@@ -48,6 +59,10 @@ import { handleChatSend, handleChatHistory } from "./handlers/chat.js";
 import { handleSessionsList, handleSessionsCreate } from "./handlers/sessions.js";
 import { handleConfigGet, handleConfigSet } from "./handlers/config.js";
 import { handleAgentRun } from "./handlers/agent.js";
+import { handleAgentStream, setBroadcast } from "./handlers/agent-stream.js";
+
+// ── Plugin system ────────────────────────────────────────────────────
+import { listInstalled, loadPlugin, unloadPlugin } from "@nexus/plugins";
 
 const log = createLogger("gateway:server");
 
@@ -80,6 +95,7 @@ const handlers: Record<string, Handler> = {
   "config.get": handleConfigGet,
   "config.set": handleConfigSet,
   "agent.run": handleAgentRun,
+  "agent.stream": handleAgentStream,
 };
 
 log.info({ methods: Object.keys(handlers) }, "RPC handlers registered");
@@ -95,6 +111,9 @@ function broadcast(event: string, payload: Record<string, unknown>): void {
     }
   }
 }
+
+// Wire the streaming handler's broadcast dependency immediately.
+setBroadcast(broadcast);
 
 // ── Core-event forwarding ───────────────────────────────────────────
 
@@ -312,8 +331,106 @@ export interface GatewayHandle {
   port: number;
 }
 
+// ── Plugin loader (runs after migrations) ────────────────────────────
+
+async function loadInstalledPlugins(): Promise<string[]> {
+  const installed = listInstalled();
+  const loaded: string[] = [];
+  for (const entry of installed) {
+    try {
+      await loadPlugin(entry.id);
+      loaded.push(entry.id);
+      log.info({ pluginId: entry.id, version: entry.version }, "Plugin loaded at startup");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      log.error({ pluginId: entry.id, err: msg }, "Failed to load plugin at startup");
+    }
+  }
+  return loaded;
+}
+
+async function unloadAllPlugins(pluginIds: string[]): Promise<void> {
+  for (const id of pluginIds) {
+    try {
+      await unloadPlugin(id);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      log.error({ pluginId: id, err: msg }, "Failed to unload plugin on shutdown");
+    }
+  }
+}
+
+// ── Channel startup ──────────────────────────────────────────────────
+
+/**
+ * Register and start all enabled channel adapters based on stored config.
+ * Errors for individual channels are logged but do not abort startup.
+ */
+async function startChannels(): Promise<void> {
+  const raw = getConfig("channels");
+  const result = ChannelsConfigSchema.safeParse(raw ?? {});
+  if (!result.success) {
+    log.warn({ err: result.error.message }, "Invalid channels config — skipping channel startup");
+    return;
+  }
+  const channelsCfg = result.data;
+
+  if (channelsCfg.telegram.enabled) {
+    const token = channelsCfg.telegram.token ?? process.env.TELEGRAM_BOT_TOKEN;
+    if (!token) {
+      log.warn("Telegram enabled but no token configured — skipping");
+    } else {
+      try {
+        registerAdapter(new TelegramAdapter({ token }));
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        log.error({ err: msg }, "Failed to register Telegram adapter");
+      }
+    }
+  }
+
+  if (channelsCfg.discord.enabled) {
+    const token = channelsCfg.discord.token ?? process.env.DISCORD_BOT_TOKEN;
+    if (!token) {
+      log.warn("Discord enabled but no token configured — skipping");
+    } else {
+      try {
+        registerAdapter(new DiscordAdapter({ token }));
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        log.error({ err: msg }, "Failed to register Discord adapter");
+      }
+    }
+  }
+
+  const ids = listAdapters();
+  for (const id of ids) {
+    try {
+      await startAdapter(id);
+      log.info({ channelId: id }, "Channel adapter started");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      log.error({ channelId: id, err: msg }, "Failed to start channel adapter");
+    }
+  }
+}
+
 export function startGateway(portOverride?: number): GatewayHandle {
   runMigrations();
+
+  // ── Load installed plugins ──────────────────────────────────────────
+  const pluginLoadPromise = loadInstalledPlugins().then((ids) => {
+    if (ids.length > 0) {
+      log.info({ plugins: ids }, `Loaded ${ids.length} plugin(s)`);
+    }
+    return ids;
+  });
+
+  // ── Start channel adapters ──────────────────────────────────────────
+  const channelStartPromise = startChannels().catch((err: unknown) => {
+    const msg = err instanceof Error ? err.message : String(err);
+    log.error({ err: msg }, "Channel startup encountered an error");
+  });
 
   const config = getAllConfig();
   const port = portOverride ?? config.gateway.port;
@@ -381,6 +498,14 @@ export function startGateway(portOverride?: number): GatewayHandle {
   return {
     port,
     async close() {
+      // Wait for channel and plugin startup to settle before tearing down.
+      await channelStartPromise;
+      await stopAllAdapters();
+
+      // Unload plugins before closing DB
+      const loadedIds = await pluginLoadPromise;
+      await unloadAllPlugins(loadedIds);
+
       for (const client of clients.values()) {
         client.ws.close(1001, "Server shutting down");
       }

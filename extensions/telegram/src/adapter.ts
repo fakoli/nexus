@@ -4,7 +4,7 @@
  *
  * Lifecycle:
  *   1. Construct with a config (token sourced from config or env var).
- *   2. Call `start(handler)` — begins long-polling; `handler` is invoked
+ *   2. Call `start(ctx)` — begins long-polling; ctx.onInbound() is invoked
  *      for every normalised InboundMessage.
  *   3. Call `stop()` — signals the poll loop to exit.
  *
@@ -14,6 +14,7 @@
  */
 
 import { createLogger } from "@nexus/core";
+import type { ChannelAdapter, ChannelCapabilities, ChannelContext, SendOptions } from "@nexus/channels";
 import { TelegramBot, TelegramBotError } from "./bot.js";
 import type {
   TelegramAdapterConfig,
@@ -86,16 +87,27 @@ export function normaliseMessage(
 
 export type MessageHandler = (message: InboundMessage) => void | Promise<void>;
 
-export class TelegramAdapter {
+export class TelegramAdapter implements ChannelAdapter {
+  // ── ChannelAdapter identity ──────────────────────────────────────────
+  readonly id: string;
+  readonly name = "Telegram";
+  readonly capabilities: ChannelCapabilities = {
+    dm: true,
+    group: true,
+    media: true,
+    reactions: false,
+    markdown: true,
+  };
+
   private readonly bot: TelegramBot;
   private readonly config: Required<
     Pick<TelegramAdapterConfig, "pollTimeoutSecs" | "limit" | "allowedUpdates">
   >;
-  private handler: MessageHandler | null = null;
+  private ctx: ChannelContext | null = null;
   private _running = false;
   private _pollPromise: Promise<void> | null = null;
 
-  constructor(config: TelegramAdapterConfig = {}) {
+  constructor(config: TelegramAdapterConfig = {}, adapterId = "telegram") {
     const token =
       config.token ?? process.env.TELEGRAM_BOT_TOKEN ?? "";
 
@@ -106,6 +118,7 @@ export class TelegramAdapter {
       );
     }
 
+    this.id = adapterId;
     this.bot = new TelegramBot(token);
     this.config = {
       pollTimeoutSecs: config.pollTimeoutSecs ?? 30,
@@ -120,20 +133,20 @@ export class TelegramAdapter {
 
   /**
    * Starts the long-polling loop.
-   * Resolves once `stop()` is called and the loop exits.
-   *
-   * @param handler  Called for every inbound message.
+   * Accepts a ChannelContext whose onInbound callback is called for every
+   * inbound message, routing it through the Nexus channel router.
    */
-  start(handler: MessageHandler): Promise<void> {
+  async start(ctx: ChannelContext): Promise<void> {
     if (this._running) {
       throw new Error("TelegramAdapter is already running");
     }
 
-    this.handler = handler;
+    this.ctx = ctx;
     this._running = true;
 
     log.info("Starting TelegramAdapter");
 
+    // Fire-and-forget the poll loop — it runs until stop() is called.
     this._pollPromise = this.bot.startPolling(
       (update) => this._handleUpdate(update),
       this.config.pollTimeoutSecs,
@@ -141,7 +154,11 @@ export class TelegramAdapter {
       this.config.allowedUpdates,
     );
 
-    return this._pollPromise;
+    // Don't await the poll loop here; it runs in the background.
+    this._pollPromise.catch((err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      log.error({ err: msg }, "Poll loop exited with error");
+    });
   }
 
   /** Stops the polling loop. Returns when the loop has fully exited. */
@@ -154,7 +171,7 @@ export class TelegramAdapter {
       await this._pollPromise;
       this._pollPromise = null;
     }
-    this.handler = null;
+    this.ctx = null;
     log.info("TelegramAdapter stopped");
   }
 
@@ -174,14 +191,17 @@ export class TelegramAdapter {
       return;
     }
 
-    if (this.handler) {
+    if (this.ctx) {
       try {
-        await this.handler(inbound);
+        await this.ctx.onInbound(inbound.chatId, inbound.text, {
+          messageId: inbound.messageId,
+          fromId: inbound.from.id,
+          fromUsername: inbound.from.username,
+          timestamp: inbound.timestamp,
+        });
       } catch (err) {
-        log.error(
-          { chatId: inbound.chatId, err: (err as Error).message },
-          "Message handler threw",
-        );
+        const errMsg = err instanceof Error ? err.message : String(err);
+        log.error({ chatId: inbound.chatId, err: errMsg }, "onInbound threw");
       }
     }
   }
@@ -189,54 +209,61 @@ export class TelegramAdapter {
   // ── Outbound ───────────────────────────────────────────────────────
 
   /**
-   * Sends a text reply to a chat.
+   * Sends a text reply to a chat (implements ChannelAdapter.sendReply).
    *
-   * Uses MarkdownV2 parse mode by default. To send plain text, pass
-   * `{ parseMode: undefined }` in options.
+   * Uses MarkdownV2 parse mode by default when options.markdown is true.
+   * Special MarkdownV2 chars are auto-escaped unless options.raw is set.
    *
-   * @param chatId     Target chat ID.
-   * @param text       Message text. Special MarkdownV2 chars are auto-escaped
-   *                   unless you pass `raw: true`.
-   * @param options    Fine-grained send options.
+   * @param target   Target chat ID (string form).
+   * @param content  Message text.
+   * @param options  SendOptions (replyToMessageId, markdown, raw, etc.).
    */
   async sendReply(
-    chatId: string | number,
-    text: string,
-    options: {
-      parseMode?: "MarkdownV2" | "HTML" | "Markdown" | null;
-      replyToMessageId?: number;
-      raw?: boolean;
-    } = {},
-  ): Promise<TelegramMessage> {
-    const parseMode =
-      options.parseMode === undefined ? "MarkdownV2" : options.parseMode ?? undefined;
+    target: string,
+    content: string,
+    options: SendOptions & { raw?: boolean; replyToMessageId?: string } = {},
+  ): Promise<void> {
+    const useMarkdown = options.markdown !== false;
+    const parseMode: "MarkdownV2" | undefined = useMarkdown ? "MarkdownV2" : undefined;
 
     const safeText =
       parseMode === "MarkdownV2" && !options.raw
-        ? escapeMarkdownV2(text)
-        : text;
+        ? escapeMarkdownV2(content)
+        : content;
 
-    log.debug({ chatId, parseMode }, "Sending reply");
+    const replyId = options.replyToMessageId
+      ? parseInt(options.replyToMessageId, 10)
+      : undefined;
 
-    return this.bot.sendMessage(chatId, safeText, {
-      parse_mode: parseMode ?? undefined,
-      reply_to_message_id: options.replyToMessageId,
+    log.debug({ chatId: target, parseMode }, "Sending reply");
+
+    await this.bot.sendMessage(target, safeText, {
+      parse_mode: parseMode,
+      reply_to_message_id: Number.isNaN(replyId) ? undefined : replyId,
     });
   }
 
   /**
    * Sends a binary payload (photo or document) to a chat via the
    * sendPhoto / sendDocument endpoints as a multipart/form-data upload.
+   * Implements the optional ChannelAdapter.sendMedia interface.
    *
-   * @param chatId    Target chat ID.
+   * @param target    Target chat ID (string).
    * @param media     Raw bytes to send.
    * @param mimeType  MIME type — determines which endpoint is used.
    *                  Image types (image/*) → sendPhoto, everything else → sendDocument.
-   * @param caption   Optional caption.
    */
   async sendMedia(
-    chatId: string | number,
-    media: Uint8Array | ArrayBuffer,
+    target: string,
+    media: Buffer,
+    mimeType: string,
+  ): Promise<void> {
+    await this._sendMediaInternal(target, media, mimeType);
+  }
+
+  private async _sendMediaInternal(
+    chatId: string,
+    media: Uint8Array | ArrayBuffer | Buffer,
     mimeType: string,
     caption?: string,
   ): Promise<TelegramMessage> {

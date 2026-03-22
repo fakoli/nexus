@@ -1,8 +1,9 @@
 import { createSignal } from "solid-js";
 import { setStore } from "../stores/app";
 import { connectAndAuthenticate } from "../stores/actions";
+import { DEFAULT_GATEWAY_URL } from "../constants";
 
-const DEFAULT_URL = "ws://localhost:18789/ws";
+const DEFAULT_URL = DEFAULT_GATEWAY_URL;
 
 export default function LoginPrompt() {
   const [url,     setUrl]     = createSignal(DEFAULT_URL);

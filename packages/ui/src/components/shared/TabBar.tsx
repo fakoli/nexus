@@ -13,7 +13,6 @@ const TABS: TabDef[] = [
   { id: "chat",     label: "Chat",     icon: "\u{1F4AC}" },
   { id: "sessions", label: "Sessions", icon: "\u{1F4CB}" },
   { id: "config",   label: "Config",   icon: "\u2699\uFE0F" },
-  { id: "logs",     label: "Logs",     icon: "\u{1F4DD}" },
 ];
 
 const TabBar: Component = () => {

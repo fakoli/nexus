@@ -7,15 +7,7 @@ import ChatView from "./components/chat/ChatView";
 import SessionList from "./components/sessions/SessionList";
 import ConfigEditor from "./components/config/ConfigEditor";
 import LoginPrompt from "./components/LoginPrompt";
-
-// ── Logs placeholder ───────────────────────────────────────────────────────
-function LogsView() {
-  return (
-    <div style={{ padding: "24px", color: "var(--text)", opacity: "0.6" }}>
-      Logs view — coming soon.
-    </div>
-  );
-}
+import Toast from "./components/shared/Toast";
 
 // ── Root App ───────────────────────────────────────────────────────────────
 export default function App() {
@@ -69,12 +61,10 @@ export default function App() {
             <Match when={store.ui.tab === "config"}>
               <ConfigEditor />
             </Match>
-            <Match when={store.ui.tab === "logs"}>
-              <LogsView />
-            </Match>
           </Switch>
         </div>
       </div>
+      <Toast />
     </div>
   );
 }

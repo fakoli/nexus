@@ -6,6 +6,10 @@ import { configCommand } from "./commands/config.js";
 import { sendCommand } from "./commands/send.js";
 import { statusCommand } from "./commands/status.js";
 import { pluginsCommand } from "./commands/plugins.js";
+import { secretsCommand } from "./commands/secrets.js";
+import { onboardCommand } from "./commands/onboard.js";
+import { doctorCommand } from "./commands/doctor.js";
+import { channelsCommand } from "./commands/channels.js";
 
 const pkg = await import("../package.json");
 
@@ -19,5 +23,9 @@ program.addCommand(configCommand);
 program.addCommand(sendCommand);
 program.addCommand(statusCommand);
 program.addCommand(pluginsCommand);
+program.addCommand(secretsCommand);
+program.addCommand(onboardCommand);
+program.addCommand(doctorCommand);
+program.addCommand(channelsCommand);
 
 program.parseAsync(process.argv);

@@ -117,9 +117,11 @@ describe("sendMessage", () => {
 
   it("adds an optimistic user message to store.session.messages", async () => {
     await sendMessage("Hello, world!");
-    expect(store.session.messages).toHaveLength(1);
+    expect(store.session.messages).toHaveLength(2);
     expect(store.session.messages[0].role).toBe("user");
     expect(store.session.messages[0].content).toBe("Hello, world!");
+    expect(store.session.messages[1].role).toBe("assistant");
+    expect(store.session.messages[1].content).toBe("");
   });
 
   it("clears chat input after sending", async () => {
@@ -128,10 +130,10 @@ describe("sendMessage", () => {
     expect(store.chat.input).toBe("");
   });
 
-  it("calls gateway.request with agent.run and the trimmed message", async () => {
+  it("calls gateway.request with agent.stream and the trimmed message", async () => {
     storeState.session.id = "sess-abc";
     await sendMessage("  test message  ");
-    expect(mockRequest).toHaveBeenCalledWith("agent.run", {
+    expect(mockRequest).toHaveBeenCalledWith("agent.stream", {
       sessionId: "sess-abc",
       message: "test message",
     });
@@ -149,9 +151,11 @@ describe("sendMessage", () => {
     expect(store.connection.error).toBe("network error");
   });
 
-  it("resets chat.sending to false after success", async () => {
+  it("keeps chat.sending true after agent.stream resolves (cleared by agent:delta done event)", async () => {
     await sendMessage("hi");
-    expect(store.chat.sending).toBe(false);
+    // sending is cleared by the agent:delta { type: "done" } event handler,
+    // not by the request promise resolving, so it stays true here.
+    expect(store.chat.sending).toBe(true);
   });
 
   it("resets chat.sending to false even if request throws", async () => {
@@ -276,7 +280,7 @@ describe("saveConfig", () => {
     await saveConfig("gateway", { port: 9000 });
     expect(mockRequest).toHaveBeenCalledWith("config.set", {
       section: "gateway",
-      data: { port: 9000 },
+      value: { port: 9000 },
     });
   });
 

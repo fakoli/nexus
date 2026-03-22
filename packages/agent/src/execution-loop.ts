@@ -10,6 +10,7 @@ import { createLogger, appendMessage } from "@nexus/core";
 import type { Provider, ProviderMessage, ProviderResponse, ToolDefinition, ToolCall } from "./providers/base.js";
 import { executeTool } from "./tool-executor.js";
 import { markProviderFailed } from "./providers/resolver.js";
+import { shouldCompact, compactHistory, DEFAULT_MAX_TOKENS } from "./compaction.js";
 
 const log = createLogger("agent:loop");
 const MAX_TOOL_ROUNDS = 20;
@@ -34,7 +35,8 @@ export interface ExecutionResult {
 
 export async function runExecutionLoop(options: ExecutionOptions): Promise<ExecutionResult> {
   const { provider, model, sessionId, systemPrompt, tools, onText, onToolCall, onToolResult } = options;
-  const messages = [...options.messages];
+  const maxTokens = DEFAULT_MAX_TOKENS[provider.id] ?? DEFAULT_MAX_TOKENS.default;
+  let messages = [...options.messages];
 
   let totalContent = "";
   let totalInputTokens = 0;
@@ -42,6 +44,11 @@ export async function runExecutionLoop(options: ExecutionOptions): Promise<Execu
   let toolCallCount = 0;
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+    // Compact history if approaching context limit
+    if (shouldCompact(messages, maxTokens)) {
+      messages = await compactHistory(provider, model, messages);
+    }
+
     let response: ProviderResponse;
     try {
       response = await provider.complete({

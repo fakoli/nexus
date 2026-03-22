@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { createLogger } from "@nexus/core";
 import type {
   Provider,
   ProviderOptions,
@@ -6,6 +7,8 @@ import type {
   StreamDelta,
   ToolCall,
 } from "./base.js";
+
+const log = createLogger("agent:providers:openai");
 
 export function createOpenAIProvider(apiKey: string, baseURL?: string): Provider {
   const client = new OpenAI({ apiKey, baseURL });

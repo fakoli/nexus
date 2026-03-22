@@ -39,9 +39,25 @@ describe('auth: authenticate — no auth configured (anonymous)', () => {
     expect(result.method).toBe('none');
   });
 
-  it('allows device token when no token/password configured', async () => {
+  it('rejects an unregistered device token even when no token/password configured', async () => {
     const { authenticate } = await import('../middleware/auth.js');
     const result = authenticate({ deviceToken: 'device-xyz' }, 'client-2');
+    expect(result.ok).toBe(false);
+    expect(result.method).toBe('device_token');
+  });
+
+  it('accepts a registered device token via paired_devices hash lookup', async () => {
+    const { createHash } = await import('node:crypto');
+    const { getDb } = await import('@nexus/core');
+    const { authenticate } = await import('../middleware/auth.js');
+    const token = 'registered-device-token';
+    const hash = createHash('sha256').update(token).digest('hex');
+    const db = getDb();
+    db.prepare(
+      `INSERT INTO paired_devices (id, name, platform, public_key, token_hash, capabilities)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    ).run('dev-1', 'Test Device', 'test', '', hash, '{}');
+    const result = authenticate({ deviceToken: token }, 'client-dev-ok');
     expect(result.ok).toBe(true);
     expect(result.method).toBe('device_token');
   });

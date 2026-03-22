@@ -7,6 +7,10 @@
   "dependencies": {
     "@nexus/core": "*",
     "@nexus/agent": "*",
+    "@nexus/channels": "*",
+    "@nexus/telegram": "*",
+    "@nexus/discord": "*",
+    "@nexus/plugins": "*",
     "hono": "^4.0.0",
     "ws": "^8.18.0",
     "uuid": "^11.0.0"

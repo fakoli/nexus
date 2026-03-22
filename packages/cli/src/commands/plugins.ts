@@ -1,9 +1,14 @@
 import { Command } from "commander";
 import { runMigrations, getConfig, setConfig, createLogger } from "@nexus/core";
+import {
+  installPlugin,
+  uninstallPlugin as dbUninstallPlugin,
+  listInstalled,
+} from "@nexus/plugins";
 
 const log = createLogger("cli:plugins");
 
-const DEFAULT_REGISTRY = "https://github.com/fakoli/fakoli-plugins";
+const DEFAULT_REGISTRY = "";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -42,20 +47,22 @@ export interface RegistryIndex {
 // ── Config helpers ────────────────────────────────────────────────────────────
 
 function getInstalledPlugins(): PluginManifest[] {
-  const raw = getConfig("plugins.installed");
-  if (!Array.isArray(raw)) return [];
-  return raw as PluginManifest[];
-}
-
-function saveInstalledPlugins(plugins: PluginManifest[]): void {
-  setConfig("plugins.installed", plugins);
+  return listInstalled().map((p) => ({
+    id: p.id,
+    name: p.name,
+    version: p.version,
+    description: "",
+    main: "index.js",
+    installedAt: p.installedAt * 1000,
+    registryUrl: p.registryUrl,
+  }));
 }
 
 function getRegistries(): string[] {
   const raw = getConfig("plugins.registries");
-  if (!Array.isArray(raw)) return [DEFAULT_REGISTRY];
-  const list = raw as string[];
-  if (list.length === 0) return [DEFAULT_REGISTRY];
+  if (!Array.isArray(raw)) return DEFAULT_REGISTRY ? [DEFAULT_REGISTRY] : [];
+  const list = (raw as string[]).filter((url) => url !== "");
+  if (list.length === 0) return DEFAULT_REGISTRY ? [DEFAULT_REGISTRY] : [];
   return list;
 }
 
@@ -203,6 +210,10 @@ pluginsCommand
   .action(async (query: string, opts: { json?: boolean }) => {
     runMigrations();
     const registries = getRegistries();
+    if (registries.length === 0) {
+      console.log("No plugin registry configured. Add one with: nexus plugins registry add <url>");
+      return;
+    }
     const term = query.toLowerCase();
     const results: (RegistryEntry & { _registry: string })[] = [];
 
@@ -254,6 +265,10 @@ pluginsCommand
   .action(async (id: string, opts: { json?: boolean }) => {
     runMigrations();
     const registries = getRegistries();
+    if (registries.length === 0) {
+      console.log("No plugin registry configured. Add one with: nexus plugins registry add <url>");
+      return;
+    }
     let found: (RegistryEntry & { _registry: string }) | undefined;
 
     for (const url of registries) {
@@ -292,29 +307,24 @@ pluginsCommand
       process.exit(1);
     }
 
-    // Record the installation (actual tarball extraction delegated to @nexus/plugins runtime)
-    const manifest: PluginManifest = {
-      id: found.id,
-      name: found.name,
-      version: found.version,
-      description: found.description,
-      author: found.author,
-      homepage: found.homepage,
-      keywords: found.keywords,
-      main: "index.js",
-      installedAt: Date.now(),
-      registryUrl: found._registry,
-    };
-
-    installed.push(manifest);
-    saveInstalledPlugins(installed);
+    // Download tarball, extract to plugins dir, install deps, record in SQLite
+    let manifest: { id: string; name: string; version: string };
+    try {
+      console.log(`Installing ${id} from ${found._registry} ...`);
+      manifest = await installPlugin(found._registry, id);
+    } catch (err) {
+      console.error(
+        `Failed to install plugin "${id}": ${err instanceof Error ? err.message : String(err)}`,
+      );
+      process.exit(1);
+    }
 
     if (opts.json) {
-      console.log(JSON.stringify(manifest, null, 2));
+      console.log(JSON.stringify({ id: manifest.id, name: manifest.name, version: manifest.version, registryUrl: found._registry }));
     } else {
       console.log(`Installed plugin: ${manifest.name} v${manifest.version}`);
       console.log(`  ID       : ${manifest.id}`);
-      console.log(`  Registry : ${manifest.registryUrl}`);
+      console.log(`  Registry : ${found._registry}`);
     }
   });
 
@@ -344,6 +354,7 @@ pluginsCommand
 
     for (const plugin of targets) {
       const registryUrl = plugin.registryUrl ?? getRegistries()[0];
+      // Check remote version first to skip unnecessary downloads
       let index: RegistryIndex;
       try {
         index = await fetchRegistryIndex(registryUrl);
@@ -375,18 +386,21 @@ pluginsCommand
         continue;
       }
 
-      // Capture the old version BEFORE mutating the plugin object so that
-      // the result record correctly reflects "from: old → to: new".
+      // Download + extract new version, overwriting the existing install
       const prevVersion = plugin.version;
-      plugin.version = remote.version;
-      plugin.description = remote.description;
-      if (remote.author) plugin.author = remote.author;
-      if (remote.homepage) plugin.homepage = remote.homepage;
-
-      results.push({ id: plugin.id, from: prevVersion, to: remote.version, status: "updated" });
+      try {
+        await installPlugin(registryUrl, plugin.id, { force: true });
+        results.push({ id: plugin.id, from: prevVersion, to: remote.version, status: "updated" });
+      } catch (err) {
+        results.push({
+          id: plugin.id,
+          from: prevVersion,
+          to: prevVersion,
+          status: "error",
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
-
-    saveInstalledPlugins(installed);
 
     if (opts.json) {
       console.log(JSON.stringify(results, null, 2));
@@ -413,9 +427,9 @@ pluginsCommand
   .action((id: string, opts: { json?: boolean }) => {
     runMigrations();
     const installed = getInstalledPlugins();
-    const idx = installed.findIndex((p) => p.id === id);
+    const target = installed.find((p) => p.id === id);
 
-    if (idx === -1) {
+    if (!target) {
       console.error(
         `Plugin "${id}" is not installed.\n` +
           `Run "nexus plugins list" to see installed plugins.`,
@@ -423,13 +437,17 @@ pluginsCommand
       process.exit(1);
     }
 
-    const [removed] = installed.splice(idx, 1);
-    saveInstalledPlugins(installed);
+    try {
+      dbUninstallPlugin(id);
+    } catch (err) {
+      console.error(`Failed to uninstall plugin: ${err instanceof Error ? err.message : String(err)}`);
+      process.exit(1);
+    }
 
     if (opts.json) {
-      console.log(JSON.stringify({ uninstalled: removed.id, version: removed.version }));
+      console.log(JSON.stringify({ uninstalled: target.id, version: target.version }));
     } else {
-      console.log(`Uninstalled plugin: ${removed.name} (${removed.id}) v${removed.version}`);
+      console.log(`Uninstalled plugin: ${target.name} (${target.id}) v${target.version}`);
     }
   });
 
@@ -565,12 +583,8 @@ registryCommand
       process.exit(1);
     }
 
-    saveRegistries(filtered.length > 0 ? filtered : [DEFAULT_REGISTRY]);
+    saveRegistries(filtered);
     console.log(`Registry removed: ${url}`);
-
-    if (filtered.length === 0) {
-      console.log(`Reverted to default registry: ${DEFAULT_REGISTRY}`);
-    }
   });
 
 pluginsCommand.addCommand(registryCommand);

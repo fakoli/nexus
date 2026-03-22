@@ -1,5 +1,5 @@
 import { Component, createSignal, onMount } from "solid-js";
-import { store } from "../../stores/app";
+import { store, setStore } from "../../stores/app";
 import { loadConfig, saveConfig } from "../../stores/actions";
 import { showToast } from "../shared/Toast";
 
@@ -58,15 +58,15 @@ const ConfigEditor: Component = () => {
           {/* Gateway */}
           {tab() === "gateway" && <>
             <div style={field}><label style={lbl}>Port</label>
-              <input type="number" style={inp} value={Number(store.config.gateway.port ?? 8080)} onInput={(e) => store.config.gateway.port = Number(e.currentTarget.value)} /></div>
+              <input type="number" style={inp} value={Number(store.config.gateway.port ?? 8080)} onInput={(e) => setStore("config", "gateway", "port", Number(e.currentTarget.value))} /></div>
             <div style={field}><label style={lbl}>Bind Address</label>
-              <select style={inp} value={str(store.config.gateway.bind, "localhost")} onChange={(e) => store.config.gateway.bind = e.currentTarget.value}>
+              <select style={inp} value={str(store.config.gateway.bind, "localhost")} onChange={(e) => setStore("config", "gateway", "bind", e.currentTarget.value)}>
                 <option value="localhost">localhost</option>
                 <option value="0.0.0.0">0.0.0.0 (all interfaces)</option>
                 <option value="127.0.0.1">127.0.0.1</option>
               </select></div>
             <div style={{ ...field, display: "flex", "align-items": "center", gap: "10px" }}>
-              <input type="checkbox" id="verbose" checked={bool(store.config.gateway.verbose)} onChange={(e) => store.config.gateway.verbose = e.currentTarget.checked} style={{ width: "16px", height: "16px", "accent-color": "#4a9eff" }} />
+              <input type="checkbox" id="verbose" checked={bool(store.config.gateway.verbose)} onChange={(e) => setStore("config", "gateway", "verbose", e.currentTarget.checked)} style={{ width: "16px", height: "16px", "accent-color": "#4a9eff" }} />
               <label for="verbose" style={{ "font-size": "13px", color: "#ccc", cursor: "pointer" }}>Verbose logging</label>
             </div>
           </>}
@@ -74,14 +74,14 @@ const ConfigEditor: Component = () => {
           {/* Agent */}
           {tab() === "agent" && <>
             <div style={field}><label style={lbl}>Default Provider</label>
-              <select style={inp} value={str(store.config.agent.defaultProvider, "anthropic")} onChange={(e) => store.config.agent.defaultProvider = e.currentTarget.value}>
+              <select style={inp} value={str(store.config.agent.defaultProvider, "anthropic")} onChange={(e) => setStore("config", "agent", "defaultProvider", e.currentTarget.value)}>
                 <option value="anthropic">Anthropic</option>
                 <option value="openai">OpenAI</option>
               </select></div>
             <div style={field}><label style={lbl}>Default Model</label>
-              <input type="text" style={inp} value={str(store.config.agent.defaultModel)} onInput={(e) => store.config.agent.defaultModel = e.currentTarget.value} placeholder="e.g. claude-3-5-sonnet-20241022" /></div>
+              <input type="text" style={inp} value={str(store.config.agent.defaultModel)} onInput={(e) => setStore("config", "agent", "defaultModel", e.currentTarget.value)} placeholder="e.g. claude-3-5-sonnet-20241022" /></div>
             <div style={field}><label style={lbl}>Think Level</label>
-              <select style={inp} value={str(store.config.agent.thinkLevel, "none")} onChange={(e) => store.config.agent.thinkLevel = e.currentTarget.value}>
+              <select style={inp} value={str(store.config.agent.thinkLevel, "none")} onChange={(e) => setStore("config", "agent", "thinkLevel", e.currentTarget.value)}>
                 <option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
               </select></div>
           </>}
@@ -89,13 +89,13 @@ const ConfigEditor: Component = () => {
           {/* Security */}
           {tab() === "security" && <>
             <div style={field}><label style={lbl}>Gateway Token</label>
-              <input type="password" style={inp} value={str(store.config.security.gatewayToken)} onInput={(e) => store.config.security.gatewayToken = e.currentTarget.value} placeholder="••••••••" /></div>
+              <input type="password" style={inp} value={str(store.config.security.gatewayToken)} onInput={(e) => setStore("config", "security", "gatewayToken", e.currentTarget.value)} placeholder="••••••••" /></div>
             <div style={field}><label style={lbl}>DM Policy</label>
-              <select style={inp} value={str(store.config.security.dmPolicy, "allow")} onChange={(e) => store.config.security.dmPolicy = e.currentTarget.value}>
+              <select style={inp} value={str(store.config.security.dmPolicy, "allow")} onChange={(e) => setStore("config", "security", "dmPolicy", e.currentTarget.value)}>
                 <option value="allow">Allow</option><option value="deny">Deny</option><option value="review">Review</option>
               </select></div>
             <div style={field}><label style={lbl}>Prompt Guard</label>
-              <select style={inp} value={str(store.config.security.promptGuard, "off")} onChange={(e) => store.config.security.promptGuard = e.currentTarget.value}>
+              <select style={inp} value={str(store.config.security.promptGuard, "off")} onChange={(e) => setStore("config", "security", "promptGuard", e.currentTarget.value)}>
                 <option value="off">Off</option><option value="warn">Warn</option><option value="block">Block</option>
               </select></div>
           </>}

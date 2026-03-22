@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
-import { createLogger, getDataDir } from "@nexus/core";
+import { createLogger, getDataDir, events } from "@nexus/core";
+import { registerTool } from "@nexus/agent";
 import { readLocalManifest } from "./installer.js";
 import { getPluginDir, isInstalled } from "./registry.js";
 import { isPlugin, isChannelPlugin, isProviderPlugin } from "./sdk.js";
@@ -113,6 +114,29 @@ export async function loadPlugin(pluginId: string): Promise<LoadedPlugin> {
       await plugin.onLoad(ctx);
     } catch (err) {
       throw new Error(`Plugin "${pluginId}" onLoad hook threw: ${String(err)}`);
+    }
+  }
+
+  // Wire tools into the agent tool registry
+  if (plugin.tools?.length) {
+    for (const tool of plugin.tools) {
+      registerTool({
+        name: tool.name,
+        description: tool.description,
+        parameters: tool.inputSchema,
+        execute: (input) => tool.execute(input, ctx) as Promise<string>,
+      });
+      log.info({ pluginId, tool: tool.name }, "Plugin tool registered");
+    }
+  }
+
+  // Subscribe hooks to the core events bus
+  if (plugin.hooks?.length) {
+    for (const hook of plugin.hooks) {
+      events.on(hook.event as Parameters<typeof events.on>[0], (payload: unknown) => {
+        void hook.handler(payload, ctx);
+      });
+      log.info({ pluginId, event: hook.event }, "Plugin hook subscribed");
     }
   }
 

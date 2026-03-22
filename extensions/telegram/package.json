@@ -5,6 +5,7 @@
   "type": "module",
   "main": "src/index.ts",
   "dependencies": {
-    "@nexus/core": "*"
+    "@nexus/core": "*",
+    "@nexus/channels": "*"
   }
 }

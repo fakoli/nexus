@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
-import { getDb } from "./db.js";
+import path from "node:path";
+import { getDb, getDataDir } from "./db.js";
 import { createLogger } from "./logger.js";
 
 const log = createLogger("core:crypto");
@@ -32,14 +33,26 @@ export function initMasterKey(passphrase?: string): void {
   if (passphrase) {
     const salt = getOrCreateSalt();
     masterKey = crypto.pbkdf2Sync(passphrase, salt, 100_000, KEY_LENGTH, "sha512");
+    return;
+  }
+
+  // 1. Prefer explicit env var (raw hex string).
+  const envKey = process.env.NEXUS_MASTER_KEY;
+  if (envKey) {
+    masterKey = Buffer.from(envKey.trim(), "hex");
+    log.info("Master key loaded from NEXUS_MASTER_KEY env var");
+    return;
+  }
+
+  // 2. Fall back to persisted file, creating it on first run.
+  const keyPath = path.join(getDataDir(), "master.key");
+  if (fs.existsSync(keyPath)) {
+    masterKey = Buffer.from(fs.readFileSync(keyPath, "utf8").trim(), "hex");
+    log.info({ path: keyPath }, "Master key loaded from file");
   } else {
-    const keyPath = process.env.NEXUS_MASTER_KEY;
-    if (keyPath) {
-      masterKey = Buffer.from(fs.readFileSync(keyPath, "utf8").trim(), "hex");
-    } else {
-      masterKey = crypto.randomBytes(KEY_LENGTH);
-      log.warn("Using ephemeral master key — credentials will not persist across restarts");
-    }
+    masterKey = crypto.randomBytes(KEY_LENGTH);
+    fs.writeFileSync(keyPath, masterKey.toString("hex"), { mode: 0o600 });
+    log.info({ path: keyPath }, "New master key generated and persisted");
   }
 }
 

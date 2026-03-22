@@ -25,16 +25,29 @@ export const SecurityConfigSchema = z.object({
   promptGuard: z.enum(["enforce", "warn", "off"]).default("enforce"),
 });
 
+export const ChannelsConfigSchema = z.object({
+  telegram: z.object({
+    enabled: z.boolean().default(false),
+    token: z.string().optional(),
+  }).default({}),
+  discord: z.object({
+    enabled: z.boolean().default(false),
+    token: z.string().optional(),
+  }).default({}),
+}).default({});
+
 export const NexusConfigSchema = z.object({
   gateway: GatewayConfigSchema.default({}),
   agent: AgentConfigSchema.default({}),
   security: SecurityConfigSchema.default({}),
+  channels: ChannelsConfigSchema,
 });
 
 export type NexusConfig = z.infer<typeof NexusConfigSchema>;
 export type GatewayConfig = z.infer<typeof GatewayConfigSchema>;
 export type AgentConfig = z.infer<typeof AgentConfigSchema>;
 export type SecurityConfig = z.infer<typeof SecurityConfigSchema>;
+export type ChannelsConfig = z.infer<typeof ChannelsConfigSchema>;
 
 export function getConfig(key: string): unknown {
   const db = getDb();
@@ -69,9 +82,7 @@ export function getAllConfig(): NexusConfig {
     gateway: flat["gateway"] ?? {},
     agent: flat["agent"] ?? {},
     security: flat["security"] ?? {},
+    channels: flat["channels"] ?? {},
   });
 }
 
-export function setConfigSection(section: string, value: unknown): void {
-  setConfig(section, value);
-}

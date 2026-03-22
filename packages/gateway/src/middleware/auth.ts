@@ -4,6 +4,7 @@
  * Supports token-based and password-based auth with rate limiting and
  * audit logging, all backed by @nexus/core primitives.
  */
+import { createHash } from "node:crypto";
 import {
   timingSafeEqual,
   checkRateLimit,
@@ -11,6 +12,7 @@ import {
   getAllConfig,
   createLogger,
   events,
+  getDb,
 } from "@nexus/core";
 import type { ConnectParams } from "../protocol/frames.js";
 
@@ -77,15 +79,17 @@ export function authenticate(
     return fail("password", clientId, "Invalid password");
   }
 
-  // --- device-token auth (placeholder, validates presence only) ---
+  // --- device-token auth ---
   if (params.deviceToken) {
-    // In a full implementation this would look up the paired_devices table
-    // and verify a hash. For now we treat any non-empty device token as
-    // valid when no token/password is configured, allowing local-only setups.
-    if (!gatewayToken && !gatewayPassword) {
+    const incomingHash = createHash("sha256").update(params.deviceToken).digest("hex");
+    const db = getDb();
+    const row = db
+      .prepare("SELECT token_hash FROM paired_devices WHERE token_hash = ?")
+      .get(incomingHash) as { token_hash: string } | undefined;
+    if (row && timingSafeEqual(incomingHash, row.token_hash)) {
       return succeed("device_token", clientId);
     }
-    return fail("device_token", clientId, "Device token auth not sufficient when token/password is configured");
+    return fail("device_token", clientId, "Invalid device token");
   }
 
   // --- no credentials at all ---

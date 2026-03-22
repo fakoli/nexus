@@ -1,6 +1,7 @@
 import { createEffect, Match, Switch, onMount } from "solid-js";
 import { store, setStore } from "./stores/app";
 import { initGateway } from "./stores/actions";
+import { DEFAULT_GATEWAY_URL } from "./constants";
 import TabBar from "./components/shared/TabBar";
 import StatusBar from "./components/shared/StatusBar";
 import ChatView from "./components/chat/ChatView";
@@ -13,12 +14,14 @@ import Toast from "./components/shared/Toast";
 export default function App() {
   // Initialise gateway connection once on mount when credentials are present.
   onMount(() => {
-    const url   = localStorage.getItem("nexus_gateway_url");
-    const token = localStorage.getItem("nexus_gateway_token");
+    const savedUrl   = localStorage.getItem("nexus_gateway_url");
+    const savedToken = localStorage.getItem("nexus_gateway_token");
 
-    if (url && token) {
-      setStore("ui", "gatewayUrl", url);
-      setStore("ui", "token", token);
+    // Always seed the URL — use saved value or fall back to auto-detected origin.
+    setStore("ui", "gatewayUrl", savedUrl ?? DEFAULT_GATEWAY_URL);
+
+    if (savedToken) {
+      setStore("ui", "token", savedToken);
     }
   });
 

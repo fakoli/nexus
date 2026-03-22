@@ -18,7 +18,7 @@ nexus/
     core/src/         — db, sessions, messages, config, agents, crypto, events, rate-limit, audit, logger
     agent/src/        — execution-loop, context-builder, tool-executor, tools/, providers/
     gateway/src/      — server.ts (Hono + WebSocket), handlers/, protocol/, middleware/
-    cli/src/          — Commander.js CLI; commands: gateway, config, send, status, plugins
+    cli/src/          — Commander.js CLI; commands: quickstart, chat, gateway, config, send, status, plugins
     plugins/src/      — plugin loader, marketplace registry client
     ui/src/           — SolidJS SPA; stores, components, gateway WebSocket client
   extensions/
@@ -40,8 +40,17 @@ npm run typecheck     # tsc --noEmit (type-check without emitting)
 npm run lint          # eslint
 npm run lint:fix      # eslint --fix
 
-# Start the gateway locally
+# One-command quickstart (setup + gateway + TUI chat)
+npx tsx packages/cli/src/index.ts quickstart
+
+# Interactive TUI chat (requires gateway already running)
+npx tsx packages/cli/src/index.ts chat
+
+# Start the gateway locally (port 19200)
 npx tsx packages/cli/src/index.ts gateway run
+
+# Convenience shell script (starts gateway, prints UI URL)
+bash scripts/start.sh
 
 # Run the UI dev server (inside packages/ui)
 cd packages/ui && npx vite

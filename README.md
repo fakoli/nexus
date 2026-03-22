@@ -28,18 +28,34 @@
 ## Quick Start
 
 ```bash
-# 1. Install dependencies
-npm install
+# Install
+npm install                                # or: git clone && npm install
 
-# 2. Set your AI provider key
-export ANTHROPIC_API_KEY=sk-ant-...        # or OPENAI_API_KEY=sk-...
-
-# 3. Start the gateway
-npx tsx packages/cli/src/index.ts gateway run
-
-# 4. Open the web UI
-open http://localhost:19200/ui/
+# Set API key and start
+export ANTHROPIC_API_KEY=sk-ant-...
+npx tsx packages/cli/src/index.ts quickstart
 ```
+
+That's it — `quickstart` runs the setup wizard, starts the gateway on port 19200, and drops you into a live chat session.
+
+---
+
+## TUI Chat
+
+Start an interactive terminal chat session against a running gateway:
+
+```bash
+nexus chat
+```
+
+Options:
+
+```
+-s, --session <id>   Resume a specific session
+-p, --port <port>    Gateway port (default: 19200)
+```
+
+Built-in chat commands: `/new`, `/sessions`, `/model <name>`, `/exit`.
 
 ---
 
@@ -81,9 +97,11 @@ open http://localhost:19200/ui/
 
 | Command | Description |
 |---|---|
-| `nexus gateway run` | Start the gateway server |
+| `nexus quickstart` | Set up, start gateway, and open TUI chat (alias: `start`) |
+| `nexus chat` | Interactive TUI chat session with the gateway |
+| `nexus gateway run` | Start the gateway server (port 19200) |
 | `nexus gateway stop` | Stop a running gateway |
-| `nexus send <message>` | Send a message and print the response |
+| `nexus send <message>` | Send a one-shot message and print the response |
 | `nexus status` | Show gateway status and connected clients |
 | `nexus config get [section]` | Read config (sections: `gateway`, `agent`, `security`) |
 | `nexus config set <section> <json>` | Write a config section |

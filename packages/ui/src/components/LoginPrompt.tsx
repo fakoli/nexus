@@ -1,12 +1,11 @@
 import { createSignal } from "solid-js";
-import { setStore } from "../stores/app";
 import { connectAndAuthenticate } from "../stores/actions";
 import { DEFAULT_GATEWAY_URL } from "../constants";
 
-const DEFAULT_URL = DEFAULT_GATEWAY_URL;
-
 export default function LoginPrompt() {
-  const [url,     setUrl]     = createSignal(DEFAULT_URL);
+  // Pre-fill the URL with the auto-detected gateway address (derived from
+  // window.location when the page is served by the gateway itself).
+  const [url,     setUrl]     = createSignal(DEFAULT_GATEWAY_URL);
   const [token,   setToken]   = createSignal("");
   const [error,   setError]   = createSignal("");
   const [loading, setLoading] = createSignal(false);
@@ -24,11 +23,9 @@ export default function LoginPrompt() {
     try {
       await connectAndAuthenticate(url().trim(), token().trim());
 
-      // Persist credentials
+      // Persist credentials so App.tsx can restore them on next load
       localStorage.setItem("nexus_gateway_url",   url().trim());
       localStorage.setItem("nexus_gateway_token", token().trim());
-
-      // Connection is already established by connectAndAuthenticate
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Connection failed.";
       setError(msg);
@@ -66,7 +63,7 @@ export default function LoginPrompt() {
             Connect to Nexus
           </h1>
           <p style={{ color: "#8888aa", "font-size": "13px", "margin-top": "4px" }}>
-            Enter your gateway address and token to begin.
+            Enter your token to connect to the gateway.
           </p>
         </div>
 
@@ -80,7 +77,7 @@ export default function LoginPrompt() {
               type="text"
               value={url()}
               onInput={(e) => setUrl(e.currentTarget.value)}
-              placeholder={DEFAULT_URL}
+              placeholder="ws://localhost:19200/ws"
               autocomplete="off"
               spellcheck={false}
               style={{ width: "100%" }}

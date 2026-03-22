@@ -447,8 +447,8 @@ export function startGateway(portOverride?: number): GatewayHandle {
       }),
     );
     res.writeHead(response.status, Object.fromEntries(response.headers.entries()));
-    const body = await response.text();
-    res.end(body);
+    const body = await response.arrayBuffer();
+    res.end(Buffer.from(body));
   });
 
   const wss = new WebSocketServer({ server: httpServer, path: "/ws" });

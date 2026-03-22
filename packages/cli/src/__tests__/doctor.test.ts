@@ -191,12 +191,12 @@ describe("doctor: gateway reachable check", () => {
     const fakeFetch = vi.fn().mockResolvedValue({ ok: true, status: 200 });
     vi.stubGlobal("fetch", fakeFetch);
 
-    const res = await fetch("http://localhost:18789/healthz", {
+    const res = await fetch("http://localhost:19200/healthz", {
       signal: AbortSignal.timeout(2000),
     });
     expect(res.ok).toBe(true);
     expect(fakeFetch).toHaveBeenCalledWith(
-      "http://localhost:18789/healthz",
+      "http://localhost:19200/healthz",
       expect.objectContaining({ signal: expect.anything() }),
     );
   });
@@ -206,7 +206,7 @@ describe("doctor: gateway reachable check", () => {
     vi.stubGlobal("fetch", fakeFetch);
 
     await expect(
-      fetch("http://localhost:18789/healthz", { signal: AbortSignal.timeout(2000) }),
+      fetch("http://localhost:19200/healthz", { signal: AbortSignal.timeout(2000) }),
     ).rejects.toThrow("ECONNREFUSED");
   });
 
@@ -214,7 +214,7 @@ describe("doctor: gateway reachable check", () => {
     const fakeFetch = vi.fn().mockResolvedValue({ ok: false, status: 503 });
     vi.stubGlobal("fetch", fakeFetch);
 
-    const res = await fetch("http://localhost:18789/healthz", {
+    const res = await fetch("http://localhost:19200/healthz", {
       signal: AbortSignal.timeout(2000),
     });
     expect(res.ok).toBe(false);

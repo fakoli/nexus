@@ -1,7 +1,7 @@
 services:
   nexus:
     build: .
-    ports: ["18789:18789"]
+    ports: ["19200:19200"]
     volumes: ["nexus-data:/root/.nexus"]
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}

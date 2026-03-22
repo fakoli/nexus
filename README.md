@@ -38,7 +38,7 @@ export ANTHROPIC_API_KEY=sk-ant-...        # or OPENAI_API_KEY=sk-...
 npx tsx packages/cli/src/index.ts gateway run
 
 # 4. Open the web UI
-open http://localhost:18789/ui/
+open http://localhost:19200/ui/
 ```
 
 ---
@@ -107,7 +107,7 @@ Configuration is stored in a local SQLite database (`~/.nexus/nexus.db`) and man
 
 | Section | Key | Type | Default | Description |
 |---|---|---|---|---|
-| `gateway` | `port` | number | `18789` | TCP port the server listens on |
+| `gateway` | `port` | number | `19200` | TCP port the server listens on |
 | `gateway` | `bind` | `loopback\|lan\|all` | `loopback` | Network interface binding |
 | `gateway` | `verbose` | boolean | `false` | Verbose request logging |
 | `agent` | `defaultProvider` | string | `anthropic` | AI provider to use |
@@ -122,7 +122,7 @@ Configuration is stored in a local SQLite database (`~/.nexus/nexus.db`) and man
 Example:
 
 ```bash
-nexus config set gateway '{"port": 18789, "bind": "loopback"}'
+nexus config set gateway '{"port": 19200, "bind": "loopback"}'
 nexus config set agent '{"defaultProvider": "openai", "defaultModel": "gpt-4o"}'
 nexus config set security '{"gatewayToken": "my-secret-token"}'
 ```

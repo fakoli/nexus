@@ -92,7 +92,7 @@ describe('config: getAllConfig', () => {
   it('returns default config when nothing is set', async () => {
     const { getAllConfig } = await import('../config.js');
     const cfg = getAllConfig();
-    expect(cfg.gateway.port).toBe(18789);
+    expect(cfg.gateway.port).toBe(19200);
     expect(cfg.gateway.bind).toBe('loopback');
     expect(cfg.agent.defaultProvider).toBe('anthropic');
     expect(cfg.agent.thinkLevel).toBe('low');
@@ -170,7 +170,7 @@ describe('config: schema validation', () => {
   it('NexusConfigSchema applies all defaults on empty input', async () => {
     const { NexusConfigSchema } = await import('../config.js');
     const result = NexusConfigSchema.parse({});
-    expect(result.gateway.port).toBe(18789);
+    expect(result.gateway.port).toBe(19200);
     expect(result.agent.defaultProvider).toBe('anthropic');
     expect(result.security.dmPolicy).toBe('pairing');
   });

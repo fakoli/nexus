@@ -19,7 +19,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 nexus gateway run
 ```
 
-The gateway will listen on `127.0.0.1:18789` by default. To accept connections from the local network:
+The gateway will listen on `127.0.0.1:19200` by default. To accept connections from the local network:
 
 ```bash
 nexus config set gateway '{"bind": "lan"}'
@@ -97,7 +97,7 @@ WORKDIR /app
 RUN npm install -g nexus
 
 # Expose the gateway port
-EXPOSE 18789
+EXPOSE 19200
 
 # Set database path to a volume-mounted location
 ENV NEXUS_DB_PATH=/data/nexus.db
@@ -112,7 +112,7 @@ docker build -t nexus-gateway .
 
 docker run -d \
   --name nexus \
-  -p 18789:18789 \
+  -p 19200:19200 \
   -v nexus-data:/data \
   -e ANTHROPIC_API_KEY=sk-ant-... \
   -e NEXUS_GATEWAY_TOKEN=my-secret-token \
@@ -124,7 +124,7 @@ Override the bind address so the server listens on all interfaces inside the con
 ```bash
 docker run -d \
   --name nexus \
-  -p 18789:18789 \
+  -p 19200:19200 \
   -v nexus-data:/data \
   -e ANTHROPIC_API_KEY=sk-ant-... \
   -e NEXUS_BIND=all \
@@ -181,7 +181,7 @@ COPY --from=builder /app/packages /app/packages
 COPY --from=builder /app/node_modules /app/node_modules
 COPY --from=builder /app/package.json .
 RUN npm install -g nexus
-EXPOSE 18789
+EXPOSE 19200
 ENV NEXUS_UI_DIST=/app/packages/ui/dist
 CMD ["nexus", "gateway", "run"]
 ```
@@ -201,7 +201,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/nexus.example.com/privkey.pem;
 
     location / {
-        proxy_pass http://127.0.0.1:18789;
+        proxy_pass http://127.0.0.1:19200;
         proxy_http_version 1.1;
 
         # WebSocket upgrade
@@ -241,7 +241,7 @@ Or simply copy the file when the gateway is stopped.
 | `ANTHROPIC_API_KEY` | — | Anthropic API key for Claude models |
 | `OPENAI_API_KEY` | — | OpenAI API key for GPT models |
 | `NEXUS_DB_PATH` | `~/.nexus/nexus.db` | Path to the SQLite database file |
-| `NEXUS_PORT` | `18789` | Port the gateway listens on |
+| `NEXUS_PORT` | `19200` | Port the gateway listens on |
 | `NEXUS_BIND` | `loopback` | Bind address: `loopback`, `lan`, or `all` |
 | `NEXUS_GATEWAY_TOKEN` | — | Shared secret required in `ConnectParams.token` |
 | `NEXUS_UI_DIST` | `packages/ui/dist` | Path to the built SolidJS UI assets |

@@ -45,14 +45,14 @@ Controls the HTTP/WebSocket server.
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `port` | number | `18789` | TCP port the server binds to |
+| `port` | number | `19200` | TCP port the server binds to |
 | `bind` | `"loopback"` \| `"lan"` \| `"all"` | `"loopback"` | Network interface: `loopback` = 127.0.0.1 only; `lan` = local network; `all` = 0.0.0.0 |
 | `verbose` | boolean | `false` | Log every HTTP request and WebSocket message |
 
 **Example:**
 
 ```bash
-nexus config set gateway '{"port": 18789, "bind": "loopback", "verbose": false}'
+nexus config set gateway '{"port": 19200, "bind": "loopback", "verbose": false}'
 ```
 
 ---
@@ -108,7 +108,7 @@ When no configuration has been set, Nexus uses these defaults:
 ```json
 {
   "gateway": {
-    "port": 18789,
+    "port": 19200,
     "bind": "loopback",
     "verbose": false
   },

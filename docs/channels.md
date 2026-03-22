@@ -36,7 +36,7 @@ Set the following environment variables before starting the adapter:
 
 ```bash
 export TELEGRAM_BOT_TOKEN=1234567890:ABCDefghIJKlmnoPQRstuvwXYZ
-export NEXUS_GATEWAY_URL=ws://localhost:18789/ws
+export NEXUS_GATEWAY_URL=ws://localhost:19200/ws
 export NEXUS_GATEWAY_TOKEN=my-secret-token   # if security.gatewayToken is set
 ```
 
@@ -53,7 +53,7 @@ import { TelegramAdapter } from "@nexus/telegram";
 
 const adapter = new TelegramAdapter({
   token: process.env.TELEGRAM_BOT_TOKEN!,
-  gatewayUrl: process.env.NEXUS_GATEWAY_URL ?? "ws://localhost:18789/ws",
+  gatewayUrl: process.env.NEXUS_GATEWAY_URL ?? "ws://localhost:19200/ws",
   gatewayToken: process.env.NEXUS_GATEWAY_TOKEN,
 });
 
@@ -87,7 +87,7 @@ await adapter.start(async (msg) => {
 
 ```bash
 export DISCORD_BOT_TOKEN=your-discord-bot-token
-export NEXUS_GATEWAY_URL=ws://localhost:18789/ws
+export NEXUS_GATEWAY_URL=ws://localhost:19200/ws
 export NEXUS_GATEWAY_TOKEN=my-secret-token   # if security.gatewayToken is set
 ```
 
@@ -105,7 +105,7 @@ import { GatewayIntent } from "@nexus/discord";
 
 const adapter = new DiscordAdapter({
   token: process.env.DISCORD_BOT_TOKEN!,
-  gatewayUrl: process.env.NEXUS_GATEWAY_URL ?? "ws://localhost:18789/ws",
+  gatewayUrl: process.env.NEXUS_GATEWAY_URL ?? "ws://localhost:19200/ws",
   gatewayToken: process.env.NEXUS_GATEWAY_TOKEN,
   intents: GatewayIntent.GUILDS | GatewayIntent.GUILD_MESSAGES | GatewayIntent.MESSAGE_CONTENT,
 });

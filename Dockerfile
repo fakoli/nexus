@@ -16,6 +16,6 @@ FROM node:22-slim
 WORKDIR /app
 COPY --from=builder /app .
 RUN npm prune --production
-EXPOSE 18789
-HEALTHCHECK --interval=30s --timeout=5s CMD node -e "fetch('http://localhost:18789/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+EXPOSE 19200
+HEALTHCHECK --interval=30s --timeout=5s CMD node -e "fetch('http://localhost:19200/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 CMD ["npx", "tsx", "packages/cli/src/index.ts", "gateway", "run", "--bind", "lan"]

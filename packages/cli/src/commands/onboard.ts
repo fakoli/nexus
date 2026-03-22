@@ -91,7 +91,7 @@ async function runOnboard(): Promise<void> {
 
     console.log("\nSetup complete! Start your assistant:");
     console.log("  npx tsx packages/cli/src/index.ts gateway run");
-    console.log("\nThen open http://localhost:18789/ui/ in your browser.");
+    console.log("\nThen open http://localhost:19200/ui/ in your browser.");
   } catch (err) {
     console.error(`\nOnboarding failed: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);

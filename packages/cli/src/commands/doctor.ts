@@ -94,7 +94,7 @@ function checkGatewayToken(): Check {
 }
 
 async function checkGatewayReachable(): Promise<Check> {
-  let port = 18789;
+  let port = 19200;
   try {
     const config = getAllConfig();
     port = config.gateway.port;

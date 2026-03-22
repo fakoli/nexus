@@ -287,7 +287,7 @@ describe('handlers: handleConfigGet', () => {
     expect(result.ok).toBe(true);
     const payload = result.payload as { section: string; value: { port: number } };
     expect(payload.section).toBe('gateway');
-    expect(payload.value.port).toBe(18789);
+    expect(payload.value.port).toBe(19200);
   });
 
   it('returns ok:true for all valid sections', async () => {

@@ -9,7 +9,7 @@ The Nexus gateway exposes a WebSocket RPC API at `ws://<host>:<port>/ws` and an 
 ### 1. Open WebSocket
 
 ```
-ws://localhost:18789/ws
+ws://localhost:19200/ws
 ```
 
 ### 2. Send `ConnectParams` (first message, client → server)

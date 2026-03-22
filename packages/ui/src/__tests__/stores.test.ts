@@ -245,9 +245,9 @@ describe("loadConfig", () => {
   });
 
   it("populates config.gateway from payload", async () => {
-    mockRequest.mockResolvedValue({ gateway: { port: 18789 }, agent: {}, security: {} });
+    mockRequest.mockResolvedValue({ gateway: { port: 19200 }, agent: {}, security: {} });
     await loadConfig();
-    expect(store.config.gateway).toEqual({ port: 18789 });
+    expect(store.config.gateway).toEqual({ port: 19200 });
   });
 
   it("populates config.agent from payload", async () => {

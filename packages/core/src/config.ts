@@ -6,7 +6,7 @@ import { createLogger } from "./logger.js";
 const log = createLogger("core:config");
 
 export const GatewayConfigSchema = z.object({
-  port: z.number().default(18789),
+  port: z.number().default(19200),
   bind: z.enum(["loopback", "lan", "all"]).default("loopback"),
   verbose: z.boolean().default(false),
 });

@@ -172,10 +172,10 @@ describe("createGatewayClient", () => {
     const requestFrame = JSON.parse(ws.sent[ws.sent.length - 1]);
     const { id } = requestFrame;
 
-    ws.simulateMessage(makeResponse(id, { port: 18789 }));
+    ws.simulateMessage(makeResponse(id, { port: 19200 }));
 
     const result = await promise;
-    expect(result).toEqual({ port: 18789 });
+    expect(result).toEqual({ port: 19200 });
   });
 
   it("request() rejects when the server returns an error frame", async () => {

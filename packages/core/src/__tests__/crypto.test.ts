@@ -15,6 +15,20 @@ async function freshSetup(dir: string) {
 }
 
 describe('crypto: encrypt / decrypt', () => {
+  let dir: string;
+
+  beforeEach(async () => {
+    dir = makeTmpDir();
+    await freshSetup(dir);
+  });
+
+  afterEach(async () => {
+    const db = await import('../db.js');
+    db.closeDb();
+    delete process.env.NEXUS_DATA_DIR;
+    rmSync(dir, { recursive: true, force: true });
+  });
+
   it('encrypts to a non-empty buffer', async () => {
     const { encrypt, initMasterKey } = await import('../crypto.js');
     initMasterKey('test-passphrase');

@@ -1,10 +1,17 @@
-# Nexus
+<p align="center">
+  <img src="assets/nexus-banner.png" alt="Nexus — Personal AI Assistant Gateway" width="800">
+</p>
 
-A self-hosted AI gateway that connects multiple AI providers to any client over a WebSocket-based RPC protocol, with a plugin marketplace and a SolidJS web UI.
+<p align="center">
+  <strong>Personal AI Assistant Gateway</strong>
+</p>
 
-![CI](https://github.com/fakoli/nexus/actions/workflows/ci.yml/badge.svg)
-[![npm](https://img.shields.io/npm/v/nexus)](https://www.npmjs.com/package/nexus)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+<p align="center">
+  <img src="https://github.com/fakoli/nexus/actions/workflows/ci.yml/badge.svg" alt="CI">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/tests-533%20passing-brightgreen" alt="533 Tests">
+  <img src="https://img.shields.io/badge/TypeScript-strict-blue" alt="TypeScript Strict">
+</p>
 
 ---
 

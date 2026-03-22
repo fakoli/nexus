@@ -13,6 +13,8 @@ gatewayCommand
   .option("-b, --bind <bind>", "bind mode: loopback | lan | all")
   .option("-v, --verbose", "enable verbose logging")
   .action(async (opts: { port?: number; bind?: string; verbose?: boolean }) => {
+    // Gateway registers multiple listeners (channels, plugins, events) — raise the limit
+    process.setMaxListeners(20);
     log.info("Initializing gateway...");
     runMigrations();
 

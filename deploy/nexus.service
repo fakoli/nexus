@@ -1,0 +1,35 @@
+[Unit]
+Description=Nexus AI Gateway
+Documentation=https://github.com/fakoli/nexus
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nexus
+Group=nexus
+WorkingDirectory=/opt/nexus
+ExecStart=/usr/bin/npx tsx packages/cli/src/index.ts gateway run
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+# Environment
+Environment=NODE_ENV=production
+EnvironmentFile=-/etc/nexus/env
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=/var/lib/nexus
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nexus
+
+[Install]
+WantedBy=multi-user.target

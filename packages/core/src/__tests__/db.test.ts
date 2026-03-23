@@ -101,6 +101,7 @@ describe('db: getDb / closeDb / runMigrations', () => {
       'config',
       'credentials',
       'cron_jobs',
+      'cron_run_history',
       'installed_plugins',
       'memory_notes',
       'messages',

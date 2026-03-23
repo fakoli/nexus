@@ -4,7 +4,7 @@
  * This is one of 6 composable units replacing OpenClaw's 3,212-line attempt.ts.
  * Responsibility: build the prompt. Nothing else.
  */
-import { getMessages, createLogger } from "@nexus/core";
+import { getMessages, createLogger, loadBootstrapContent } from "@nexus/core";
 import type { ProviderMessage, ToolDefinition } from "./providers/base.js";
 
 const log = createLogger("agent:context");
@@ -15,6 +15,7 @@ Be concise and direct. Focus on being genuinely helpful.`;
 
 export interface ContextOptions {
   sessionId: string;
+  agentId?: string;
   systemPrompt?: string;
   tools?: ToolDefinition[];
   maxHistoryMessages?: number;
@@ -27,9 +28,11 @@ export interface BuiltContext {
 }
 
 export function buildContext(options: ContextOptions): BuiltContext {
-  const { sessionId, maxHistoryMessages = 100 } = options;
+  const { sessionId, agentId, maxHistoryMessages = 100 } = options;
 
-  const systemPrompt = options.systemPrompt ?? DEFAULT_SYSTEM_PROMPT;
+  const bootstrapContent = loadBootstrapContent(agentId);
+  const base = options.systemPrompt ?? DEFAULT_SYSTEM_PROMPT;
+  const systemPrompt = bootstrapContent ? `${bootstrapContent}\n\n${base}` : base;
   const tools = options.tools ?? [];
 
   // Load message history from SQLite

@@ -2,11 +2,15 @@ import { createStore } from "solid-js/store";
 import { createGatewayClient } from "../gateway/client";
 import { DEFAULT_GATEWAY_URL } from "../constants";
 import type {
+  Agent,
   ConnectionStatus,
+  CronJob,
+  CronRunHistory,
   Message,
   SessionInfo,
   TabName,
   ThemeName,
+  UsageSummary,
 } from "../gateway/types";
 
 // ── Store shape ───────────────────────────────────────────────────────────────
@@ -30,12 +34,22 @@ export interface AppStore {
     gateway: Record<string, unknown>;
     agent: Record<string, unknown>;
     security: Record<string, unknown>;
+    channels: Record<string, unknown>;
+  };
+  agents: Agent[];
+  cron: {
+    jobs: CronJob[];
+    history: CronRunHistory[];
+  };
+  usage: {
+    summary: UsageSummary | null;
   };
   ui: {
     tab: TabName;
     theme: ThemeName;
     gatewayUrl: string;
     token: string;
+    commandPaletteOpen: boolean;
   };
 }
 
@@ -46,8 +60,11 @@ const initialState: AppStore = {
   session: { id: "", agentId: "", messages: [] },
   sessions: [],
   chat: { input: "", sending: false },
-  config: { gateway: {}, agent: {}, security: {} },
-  ui: { tab: "chat", theme: "dark", gatewayUrl: "", token: "" },
+  config: { gateway: {}, agent: {}, security: {}, channels: {} },
+  agents: [],
+  cron: { jobs: [], history: [] },
+  usage: { summary: null },
+  ui: { tab: "chat", theme: "dark", gatewayUrl: "", token: "", commandPaletteOpen: false },
 };
 
 export const [store, setStore] = createStore<AppStore>(initialState);
@@ -73,7 +90,7 @@ gateway.onEvent("session:created", (payload) => {
 
 // session:message pushed by the server
 gateway.onEvent("session:message", (payload) => {
-  const msg = payload as Message;
+  const msg = payload as unknown as Message;
   setStore("session", "messages", (msgs) => [...msgs, msg]);
 });
 

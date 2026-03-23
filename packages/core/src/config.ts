@@ -23,6 +23,8 @@ export const SecurityConfigSchema = z.object({
   gatewayPassword: z.string().optional(),
   dmPolicy: z.enum(["pairing", "open", "deny"]).default("pairing"),
   promptGuard: z.enum(["enforce", "warn", "off"]).default("enforce"),
+  ssrfAllowlist: z.array(z.string()).default([]),
+  workspaceRoots: z.array(z.string()).default([]),
 });
 
 export const ChannelsConfigSchema = z.object({

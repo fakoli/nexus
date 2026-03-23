@@ -42,8 +42,9 @@ export function registerBashTool(): void {
         }
       }
 
-      recordAudit("bash_execution", "agent", { command });
-      log.info({ command: command.slice(0, 200) }, "Executing bash");
+      const workingDir = process.cwd();
+      recordAudit("bash_execution", "agent", { command, workingDir });
+      log.info({ command: command.slice(0, 200), workingDir }, "Executing bash");
 
       try {
         const output = execSync(command, {

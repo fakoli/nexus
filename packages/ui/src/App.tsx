@@ -1,12 +1,13 @@
-import { createEffect, Match, Switch, onMount } from "solid-js";
+import { createEffect, Match, Switch, onMount, onCleanup } from "solid-js";
 import { store, setStore } from "./stores/app";
 import { initGateway } from "./stores/actions";
 import { DEFAULT_GATEWAY_URL } from "./constants";
-import TabBar from "./components/shared/TabBar";
+import Sidebar from "./components/layout/Sidebar";
+import CommandPalette from "./components/layout/CommandPalette";
 import StatusBar from "./components/shared/StatusBar";
 import ChatView from "./components/chat/ChatView";
 import SessionList from "./components/sessions/SessionList";
-import ConfigEditor from "./components/config/ConfigEditor";
+import ConfigPanel from "./components/config/ConfigPanel";
 import LoginPrompt from "./components/LoginPrompt";
 import Toast from "./components/shared/Toast";
 
@@ -17,30 +18,31 @@ export default function App() {
     const savedUrl   = localStorage.getItem("nexus_gateway_url");
     const savedToken = localStorage.getItem("nexus_gateway_token");
 
-    // Always seed the URL — use saved value or fall back to auto-detected origin.
     setStore("ui", "gatewayUrl", savedUrl ?? DEFAULT_GATEWAY_URL);
+    if (savedToken) setStore("ui", "token", savedToken);
 
-    if (savedToken) {
-      setStore("ui", "token", savedToken);
-    }
+    // Global Cmd+K / Ctrl+K listener for command palette
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setStore("ui", "commandPaletteOpen", !store.ui.commandPaletteOpen);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    onCleanup(() => window.removeEventListener("keydown", handleKey));
   });
 
   // Re-connect whenever the token changes (covers first-time login too).
   createEffect(() => {
     const { token, gatewayUrl } = store.ui;
-    if (token && gatewayUrl) {
-      initGateway(gatewayUrl, token);
-    }
+    if (token && gatewayUrl) initGateway(gatewayUrl, token);
   });
 
-  const hasCredentials = () =>
-    Boolean(store.ui.token && store.ui.gatewayUrl);
+  const hasCredentials = () => Boolean(store.ui.token && store.ui.gatewayUrl);
 
   return (
     <div id="app">
-      <nav class="app-sidebar">
-        <TabBar />
-      </nav>
+      <Sidebar />
 
       <div class="app-main">
         <div class="app-status">
@@ -49,12 +51,9 @@ export default function App() {
 
         <div class="app-content">
           <Switch>
-            {/* No credentials yet — show login */}
             <Match when={!hasCredentials()}>
               <LoginPrompt />
             </Match>
-
-            {/* Tabbed views */}
             <Match when={store.ui.tab === "chat"}>
               <ChatView />
             </Match>
@@ -62,11 +61,38 @@ export default function App() {
               <SessionList />
             </Match>
             <Match when={store.ui.tab === "config"}>
-              <ConfigEditor />
+              <ConfigPanel />
+            </Match>
+            <Match when={store.ui.tab === "agents"}>
+              <div class="placeholder-view">
+                <span class="placeholder-icon">⬡</span>
+                <h2>Agents</h2>
+                <p>Agent management coming soon.</p>
+              </div>
+            </Match>
+            <Match when={store.ui.tab === "cron"}>
+              <div class="placeholder-view">
+                <span class="placeholder-icon">◷</span>
+                <h2>Cron Jobs</h2>
+                <p>Scheduled task management coming soon.</p>
+              </div>
+            </Match>
+            <Match when={store.ui.tab === "analytics"}>
+              <div class="placeholder-view">
+                <span class="placeholder-icon">↗</span>
+                <h2>Analytics</h2>
+                <p>Usage statistics and insights coming soon.</p>
+              </div>
             </Match>
           </Switch>
         </div>
       </div>
+
+      <CommandPalette
+        open={store.ui.commandPaletteOpen}
+        onClose={() => setStore("ui", "commandPaletteOpen", false)}
+      />
+
       <Toast />
     </div>
   );

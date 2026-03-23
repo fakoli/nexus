@@ -36,7 +36,7 @@ const MessageBubble: Component<MessageBubbleProps> = (props) => {
     border: isTool() ? "1px solid #3a3a5c" : "none",
     "font-family": isTool() ? "monospace" : "inherit",
     position: "relative" as const,
-    "word-break": "break-word",
+    "word-break": "break-word" as const,
   });
 
   return (

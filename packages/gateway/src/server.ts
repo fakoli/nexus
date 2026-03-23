@@ -36,6 +36,7 @@ import {
   createLogger,
   closeDb,
   ChannelsConfigSchema,
+  startCronRunner,
 } from "@nexus/core";
 
 import {
@@ -60,6 +61,31 @@ import { handleSessionsList, handleSessionsCreate } from "./handlers/sessions.js
 import { handleConfigGet, handleConfigSet } from "./handlers/config.js";
 import { handleAgentRun } from "./handlers/agent.js";
 import { handleAgentStream, setBroadcast } from "./handlers/agent-stream.js";
+import {
+  handleCronList,
+  handleCronCreate,
+  handleCronUpdate,
+  handleCronDelete,
+  handleCronRun,
+  handleCronHistory,
+} from "./handlers/cron.js";
+import {
+  handleUsageSummary,
+  handleUsageBySession,
+  handleUsageByModel,
+  handleUsageTimeSeries,
+} from "./handlers/usage.js";
+import {
+  handleAgentsList,
+  handleAgentsGet,
+  handleAgentsCreate,
+  handleAgentsUpdate,
+  handleAgentsDelete,
+  handleAgentsDuplicate,
+  handleBootstrapGet,
+  handleBootstrapSet,
+  handleBootstrapList,
+} from "./handlers/agents.js";
 
 // ── Plugin system ────────────────────────────────────────────────────
 import { listInstalled, loadPlugin, unloadPlugin } from "@nexus/plugins";
@@ -96,6 +122,25 @@ const handlers: Record<string, Handler> = {
   "config.set": handleConfigSet,
   "agent.run": handleAgentRun,
   "agent.stream": handleAgentStream,
+  "agents.list": handleAgentsList,
+  "agents.get": handleAgentsGet,
+  "agents.create": handleAgentsCreate,
+  "agents.update": handleAgentsUpdate,
+  "agents.delete": handleAgentsDelete,
+  "agents.duplicate": handleAgentsDuplicate,
+  "agents.bootstrap.get": handleBootstrapGet,
+  "agents.bootstrap.set": handleBootstrapSet,
+  "agents.bootstrap.list": handleBootstrapList,
+  "cron.list": handleCronList,
+  "cron.create": handleCronCreate,
+  "cron.update": handleCronUpdate,
+  "cron.delete": handleCronDelete,
+  "cron.run": handleCronRun,
+  "cron.history": handleCronHistory,
+  "usage.summary": handleUsageSummary,
+  "usage.by-session": handleUsageBySession,
+  "usage.by-model": handleUsageByModel,
+  "usage.timeseries": handleUsageTimeSeries,
 };
 
 log.info({ methods: Object.keys(handlers) }, "RPC handlers registered");
@@ -418,6 +463,9 @@ async function startChannels(): Promise<void> {
 export function startGateway(portOverride?: number): GatewayHandle {
   runMigrations();
 
+  // ── Start cron runner ───────────────────────────────────────────────
+  const cronRunner = startCronRunner();
+
   // ── Load installed plugins ──────────────────────────────────────────
   const pluginLoadPromise = loadInstalledPlugins().then((ids) => {
     if (ids.length > 0) {
@@ -498,6 +546,9 @@ export function startGateway(portOverride?: number): GatewayHandle {
   return {
     port,
     async close() {
+      // Stop cron runner before draining other subsystems.
+      cronRunner.stop();
+
       // Wait for channel and plugin startup to settle before tearing down.
       await channelStartPromise;
       await stopAllAdapters();

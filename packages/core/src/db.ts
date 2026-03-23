@@ -194,5 +194,24 @@ function getMigrations(): Migration[] {
         `);
       },
     },
+    {
+      version: 3,
+      name: "cron-run-history",
+      up: (db) => {
+        db.exec(`
+          CREATE TABLE IF NOT EXISTS cron_run_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            job_id TEXT NOT NULL REFERENCES cron_jobs(id),
+            status TEXT NOT NULL DEFAULT 'pending',
+            started_at INTEGER NOT NULL DEFAULT (unixepoch()),
+            finished_at INTEGER,
+            result_summary TEXT,
+            tokens_used INTEGER DEFAULT 0,
+            error TEXT
+          );
+          CREATE INDEX IF NOT EXISTS idx_cron_history_job ON cron_run_history(job_id, started_at);
+        `);
+      },
+    },
   ];
 }

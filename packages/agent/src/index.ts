@@ -20,6 +20,8 @@ export type {
 export type { ToolHandler } from "./tool-executor.js";
 export { createAnthropicProvider } from "./providers/anthropic.js";
 export { createOpenAIProvider } from "./providers/openai.js";
+export { createGoogleProvider } from "./providers/google.js";
+export { createGroqProvider } from "./providers/groq.js";
 export {
   estimateTokens,
   shouldCompact,

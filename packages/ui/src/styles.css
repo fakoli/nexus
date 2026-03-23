@@ -7,15 +7,18 @@
 
 /* ── Theme variables ─────────────────────────────────────────────────────── */
 :root {
-  --bg:       #1a1a2e;
-  --bg-card:  #252542;
-  --text:     #e0e0e0;
-  --accent:   #4a9eff;
-  --success:  #4caf50;
-  --error:    #f44336;
-  --border:   #3a3a5c;
-
-  --sidebar-w: 60px;
+  --bg:           #1a1a2e;
+  --bg-card:      #252542;
+  --bg-hover:     #2e2e50;
+  --bg-sidebar:   #13132a;
+  --text:         #e0e0e0;
+  --text-muted:   #8888aa;
+  --text-dim:     #5a5a7a;
+  --accent:       #4a9eff;
+  --success:      #4caf50;
+  --warning:      #ffa726;
+  --error:        #f44336;
+  --border:       #3a3a5c;
 }
 
 /* ── Base typography ─────────────────────────────────────────────────────── */
@@ -48,25 +51,14 @@ code, pre {
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #5a5a7c; }
 
-/* ── App layout (sidebar + main) ─────────────────────────────────────────── */
+/* ── App layout: sidebar (dynamic width) + main ─────────────────────────── */
 #app {
   display: flex;
   height: 100vh;
   overflow: hidden;
 }
 
-.app-sidebar {
-  width: var(--sidebar-w);
-  flex-shrink: 0;
-  background: var(--bg-card);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px 0;
-  gap: 4px;
-  z-index: 10;
-}
+/* Sidebar is managed via inline styles in Sidebar.tsx (dynamic collapsed/expanded) */
 
 .app-main {
   flex: 1;
@@ -86,6 +78,34 @@ code, pre {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+/* ── Placeholder views (Agents, Cron, Analytics) ────────────────────────── */
+.placeholder-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.placeholder-view .placeholder-icon {
+  font-size: 48px;
+  opacity: 0.3;
+}
+
+.placeholder-view h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.placeholder-view p {
+  font-size: 14px;
+  color: var(--text-muted);
 }
 
 /* ── Cards / panels ─────────────────────────────────────────────────────── */
@@ -118,8 +138,13 @@ button.secondary {
   color: var(--text);
 }
 
+button.ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+
 /* ── Inputs ─────────────────────────────────────────────────────────────── */
-input, textarea {
+input, textarea, select {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -130,30 +155,41 @@ input, textarea {
   outline: none;
   transition: border-color 0.15s;
 }
-input:focus, textarea:focus {
+input:focus, textarea:focus, select:focus {
   border-color: var(--accent);
 }
 input::placeholder, textarea::placeholder {
-  color: #6a6a8a;
+  color: var(--text-dim);
 }
 
-/* ── Responsive: collapse sidebar on mobile ─────────────────────────────── */
-@media (max-width: 480px) {
-  :root { --sidebar-w: 0px; }
+/* ── Command palette kbd hints ──────────────────────────────────────────── */
+kbd {
+  font-family: "JetBrains Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+}
 
-  .app-sidebar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 56px;
-    flex-direction: row;
-    justify-content: space-around;
-    border-right: none;
-    border-top: 1px solid var(--border);
-    padding: 0 8px;
-    z-index: 20;
+/* ── Responsive: bottom nav on mobile ──────────────────────────────────── */
+@media (max-width: 480px) {
+  #app { flex-direction: column; }
+
+  /* Sidebar becomes a fixed bottom tab bar */
+  #app > nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    height: 56px !important;
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    border-right: none !important;
+    border-top: 1px solid var(--border) !important;
+    padding: 0 8px !important;
+    z-index: 20 !important;
+    overflow: hidden !important;
   }
 
   .app-main {

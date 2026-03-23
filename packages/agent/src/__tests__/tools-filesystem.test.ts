@@ -2,7 +2,7 @@
  * Tests for tools/filesystem.ts
  * Covers: read_file, write_file, list_directory
  */
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import os from "node:os";
 import path from "node:path";
 import fs from "node:fs";
@@ -10,12 +10,24 @@ import fs from "node:fs";
 const tmpDir = path.join(os.tmpdir(), `nexus-test-fs-${process.pid}`);
 process.env.NEXUS_DATA_DIR = tmpDir;
 
+// Workspace dir for file operations during tests
+const workspaceDir = path.join(os.tmpdir(), `nexus-fs-workspace-${process.pid}`);
+
+// Mock getDefaultMounts to include the test workspace directory
+vi.mock("@nexus/core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@nexus/core")>();
+  return {
+    ...actual,
+    getDefaultMounts: () => [
+      { root: workspaceDir, writable: true },
+      { root: os.tmpdir(), writable: true },
+    ],
+  };
+});
+
 import { runMigrations } from "@nexus/core";
 import { registerFilesystemTools } from "../tools/filesystem.js";
 import { executeTool, getRegisteredTools } from "../tool-executor.js";
-
-// Workspace dir for file operations during tests
-const workspaceDir = path.join(os.tmpdir(), `nexus-fs-workspace-${process.pid}`);
 
 describe("tools/filesystem", () => {
   beforeEach(() => {

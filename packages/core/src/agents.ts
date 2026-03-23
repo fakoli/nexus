@@ -37,3 +37,24 @@ export function updateAgent(id: string, config: Record<string, unknown>): void {
     id,
   );
 }
+
+/**
+ * Deletes an agent by id. Returns true if a row was deleted, false if not found.
+ */
+export function deleteAgent(id: string): boolean {
+  const db = getDb();
+  const result = db.prepare("DELETE FROM agents WHERE id = ?").run(id);
+  return result.changes > 0;
+}
+
+/**
+ * Duplicates an existing agent into a new id, copying its config.
+ * Throws if sourceId does not exist.
+ */
+export function duplicateAgent(sourceId: string, newId: string): Agent {
+  const source = getAgent(sourceId);
+  if (!source) {
+    throw new Error(`Agent not found: ${sourceId}`);
+  }
+  return createAgent(newId, { ...source.config });
+}

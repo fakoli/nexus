@@ -4,7 +4,7 @@
  * Dispatches to registered tool handlers. Each tool is a simple function.
  * This replaces OpenClaw's scattered tool instantiation in attempt.ts.
  */
-import { createLogger, recordAudit } from "@nexus/core";
+import { createLogger, recordAudit, checkToolPolicy } from "@nexus/core";
 import type { ToolCall, ToolDefinition } from "./providers/base.js";
 
 const log = createLogger("agent:tools");
@@ -35,7 +35,21 @@ export function getToolDefinitions(): ToolDefinition[] {
   }));
 }
 
-export async function executeTool(call: ToolCall): Promise<string> {
+export async function executeTool(
+  call: ToolCall,
+  agentId?: string,
+): Promise<string> {
+  // Policy check — runs only when an agentId is available
+  if (agentId) {
+    const policy = checkToolPolicy(agentId, call.name);
+    if (!policy.allowed) {
+      log.warn({ tool: call.name, agentId, reason: policy.reason }, "Tool blocked by policy");
+      return JSON.stringify({
+        error: `Tool "${call.name}" blocked by policy: ${policy.reason}`,
+      });
+    }
+  }
+
   const handler = registry.get(call.name);
   if (!handler) {
     log.warn({ tool: call.name }, "Unknown tool");

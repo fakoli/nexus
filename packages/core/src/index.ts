@@ -33,7 +33,16 @@ export {
   getMessages,
   getMessageCount,
 } from "./sessions.js";
-export { createAgent, getAgent, getOrCreateAgent, listAgents, updateAgent } from "./agents.js";
+export { createAgent, getAgent, getOrCreateAgent, listAgents, updateAgent, deleteAgent, duplicateAgent } from "./agents.js";
+export {
+  getBootstrapDir,
+  getBootstrapFile,
+  setBootstrapFile,
+  listBootstrapFiles,
+  loadBootstrapContent,
+  BOOTSTRAP_FILES,
+} from "./bootstrap.js";
+export type { BootstrapFileName } from "./bootstrap.js";
 export type {
   Message,
   Session,
@@ -43,3 +52,52 @@ export type {
   CronJob,
   MessageRole,
 } from "./types.js";
+export {
+  scanForInjection,
+  enforcePromptGuard,
+  wrapExternalContent,
+  sanitizeMarkers,
+  extractBoundaryMetadata,
+  validateUrl,
+  checkToolPolicy,
+  matchGlob,
+  resolveSafePath,
+  detectSymlinkEscape,
+  checkMountAccess,
+  getDefaultMounts,
+} from "./security/index.js";
+export type {
+  Detection,
+  ScanResult,
+  BoundaryMetadata,
+  ValidationResult,
+  ToolPolicy,
+  PolicyResult,
+  WorkspaceConfig,
+  MountEntry,
+  AccessResult,
+} from "./security/index.js";
+export {
+  createCronJob,
+  listCronJobs,
+  getCronJob,
+  updateCronJob,
+  deleteCronJob,
+  getDueJobs,
+  recordCronRun,
+  getCronHistory,
+} from "./cron.js";
+export type { CronRunHistory } from "./cron.js";
+export {
+  getUsageSummary,
+  getUsageBySession,
+  getUsageByModel,
+  getUsageTimeSeries,
+} from "./usage.js";
+export type {
+  UsageSummary,
+  SessionUsage,
+  ModelUsage,
+  DailyUsage,
+} from "./usage.js";
+export { startCronRunner, computeNextRunAt } from "./cron-runner.js";

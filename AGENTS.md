@@ -150,6 +150,75 @@ Channel adapters (Telegram, Discord) live in `extensions/`. They:
 
 ---
 
+## Parallel Agent Team Workflow
+
+Nexus is developed using multi-agent teams — multiple Claude Code agents (Sonnet 4.6) running in parallel, each responsible for a specific feature area.
+
+### Deployment Rules
+
+1. **Max 5 concurrent agents** — 8 caused OOM. Stay at 5 or fewer.
+2. **Use Sonnet 4.6** for all coding and testing agents.
+3. **Wave-based execution** — coding agents run first, QA agents run after they complete.
+4. **Verify after each wave** — always run `npm test`, `npm run typecheck`, `cd packages/ui && npx vite build` before committing.
+5. **Clean stale artifacts** — run `find . -path "*/src/*.js" -not -path "*/node_modules/*" -delete` before tests (vitest picks up compiled files over source).
+
+### File Ownership (Conflict Avoidance)
+
+Each agent owns specific directories. No two agents should create files in the same directory.
+
+| Owner | Directories |
+|-------|-----------|
+| Security agent | `packages/core/src/security/` |
+| Backend agent 1 | `packages/core/src/bootstrap.ts`, `packages/agent/src/providers/`, `packages/gateway/src/handlers/agents.ts` |
+| Backend agent 2 | `packages/core/src/cron*.ts`, `packages/core/src/usage.ts`, `packages/gateway/src/handlers/cron.ts`, `packages/gateway/src/handlers/usage.ts` |
+| UX agent | `packages/ui/src/design/`, `packages/ui/src/components/layout/`, all new UI views |
+| QA agents | `**/__tests__/` only |
+
+### Shared File Protocol
+
+These files are touched by multiple agents and need ordering:
+
+| File | Rule |
+|------|------|
+| `packages/core/src/index.ts` | Append-only — each agent adds their exports at the end |
+| `packages/core/src/config.ts` | Security agent goes first, then backend agents |
+| `packages/core/src/db.ts` | Only one agent writes each migration version |
+| `packages/gateway/src/server.ts` | Each agent adds handler imports + dispatch entries in their own section |
+| `packages/ui/src/App.tsx` | UX agent is sole modifier |
+| `packages/ui/src/stores/app.ts` | UX agent defines store shape; backend agents add actions only |
+| `packages/ui/src/gateway/types.ts` | UX agent is sole modifier |
+
+### Sprint Cadence
+
+Each sprint adds ~100-150 tests and ~30-50 source files:
+
+| Sprint | Focus | Tests Added |
+|--------|-------|-------------|
+| Sprint 1 | Security core, config expansion, agent bootstrap, cron, analytics, design system | +147 (703 total) |
+| Sprint 2 | Slash commands, agent UI, tool cards, session tuning, focus mode | +101 (804 total) |
+| Sprint 3 | More providers, cron UI, analytics dashboard, debug tools, plugin manager | +174 (978 total) |
+| Sprint 4 | Production hardening: gateway.bind, prompt guard wiring, web_fetch tool, memory module, E2E tests | Planned |
+
+### Agent Prompt Template
+
+When deploying an agent, use this structure:
+```
+You are Agent [ROLE] on the Nexus project at `/path/to/nexus/`.
+
+YOUR JOB: [one-line description]
+
+Read first: [list of files to read for context]
+
+Create these files: [list with descriptions]
+Modify these files: [list with what to change]
+Write tests: [list of test files]
+
+Keep files under [N] LOC. Use [patterns from existing code].
+Don't touch files owned by other agents: [list].
+```
+
+---
+
 ## Do Not
 
 - Do not modify `packages/core/src/db.ts` schema outside of a migration file.

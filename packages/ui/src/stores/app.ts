@@ -6,11 +6,14 @@ import type {
   ConnectionStatus,
   CronJob,
   CronRunHistory,
+  FederatedPeer,
   Message,
   SessionInfo,
+  SkillInfo,
   TabName,
   ThemeName,
   UsageSummary,
+  VoiceInfo,
 } from "../gateway/types";
 
 // ── Store shape ───────────────────────────────────────────────────────────────
@@ -44,6 +47,18 @@ export interface AppStore {
   usage: {
     summary: UsageSummary | null;
   };
+  federation: {
+    peers: FederatedPeer[];
+    enabled: boolean;
+  };
+  speech: {
+    voices: VoiceInfo[];
+    ttsEnabled: boolean;
+    sttEnabled: boolean;
+  };
+  skills: {
+    available: SkillInfo[];
+  };
   ui: {
     tab: TabName;
     theme: ThemeName;
@@ -64,6 +79,9 @@ const initialState: AppStore = {
   agents: [],
   cron: { jobs: [], history: [] },
   usage: { summary: null },
+  federation: { peers: [], enabled: false },
+  speech: { voices: [], ttsEnabled: false, sttEnabled: false },
+  skills: { available: [] },
   ui: { tab: "overview", theme: "dark", gatewayUrl: "", token: "", commandPaletteOpen: false },
 };
 
@@ -116,6 +134,27 @@ gateway.onEvent("agent:delta", (payload) => {
     });
   } else if (p.type === "done") {
     setStore("chat", "sending", false);
+  }
+});
+
+// federation:peer:connected — a peer has connected
+gateway.onEvent("federation:peer:connected", (payload) => {
+  const peer = payload as unknown as FederatedPeer;
+  setStore("federation", "peers", (peers) => {
+    const filtered = peers.filter((p) => p.gatewayId !== peer.gatewayId);
+    return [...filtered, peer];
+  });
+});
+
+// federation:peer:disconnected — a peer has disconnected
+gateway.onEvent("federation:peer:disconnected", (payload) => {
+  const p = payload as { gatewayId?: string };
+  if (p.gatewayId) {
+    setStore("federation", "peers", (peers) =>
+      peers.map((peer) =>
+        peer.gatewayId === p.gatewayId ? { ...peer, status: "disconnected" as const } : peer,
+      ),
+    );
   }
 });
 

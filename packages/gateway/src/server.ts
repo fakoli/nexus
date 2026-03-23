@@ -34,6 +34,7 @@ import {
   getConfig,
   events,
   createLogger,
+  initLogLevel,
   closeDb,
   ChannelsConfigSchema,
   startCronRunner,
@@ -94,9 +95,25 @@ import {
   handleBootstrapSet,
   handleBootstrapList,
 } from "./handlers/agents.js";
+import {
+  handleSpeechTTS,
+  handleSpeechSTT,
+  handleSpeechVoices,
+} from "./handlers/speech.js";
 
 // ── Plugin system ────────────────────────────────────────────────────
 import { listInstalled, loadPlugin, unloadPlugin } from "@nexus/plugins";
+import {
+  handlePluginsList,
+  handlePluginsInstall,
+  handlePluginsUninstall,
+  handlePluginsSearch,
+} from "./handlers/plugins.js";
+import {
+  handleSkillsList,
+  handleSkillsInstall,
+  handleSkillsSearch,
+} from "./handlers/skills.js";
 
 const log = createLogger("gateway:server");
 
@@ -155,6 +172,9 @@ const handlers: Record<string, Handler> = {
   "memory.delete": handleMemoryDelete,
   "memory.search": handleMemorySearch,
   "memory.list": handleMemoryList,
+  "speech.tts": handleSpeechTTS,
+  "speech.stt": handleSpeechSTT,
+  "speech.voices": handleSpeechVoices,
 };
 
 log.info({ methods: Object.keys(handlers) }, "RPC handlers registered");
@@ -476,6 +496,12 @@ async function startChannels(): Promise<void> {
 
 export function startGateway(portOverride?: number): GatewayHandle {
   runMigrations();
+
+  // ── Wire verbose logging from config ──────────────────────────────
+  initLogLevel().catch((err: unknown) => {
+    const msg = err instanceof Error ? err.message : String(err);
+    log.warn({ err: msg }, "Failed to initialise log level from config");
+  });
 
   // ── Start cron runner ───────────────────────────────────────────────
   const cronRunner = startCronRunner();

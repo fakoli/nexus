@@ -34,7 +34,7 @@ const ChatInput: Component = () => {
   });
 
   return (
-    <div style={{
+    <div class="nx-chat-input" style={{
       padding: "12px 16px 16px",
       "border-top": "1px solid #2a2a45",
       background: "#1a1a2e",

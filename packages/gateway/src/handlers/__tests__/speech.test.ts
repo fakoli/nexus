@@ -50,6 +50,11 @@ import {
   handleSpeechSTT,
   handleSpeechVoices,
 } from "../speech.js";
+import type { ResponseFrame } from "../../protocol/frames.js";
+
+function payload(r: ResponseFrame): Record<string, unknown> {
+  return r.payload as Record<string, unknown>;
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -149,7 +154,7 @@ describe("handleSpeechVoices", () => {
     const result = await handleSpeechVoices({});
     expect(result.ok).toBe(true);
     expect(result.payload).toHaveProperty("voices");
-    expect(result.payload?.provider).toBe("mock-tts");
+    expect(payload(result).provider).toBe("mock-tts");
   });
 
   it("returns VOICES_ERROR on provider failure", async () => {

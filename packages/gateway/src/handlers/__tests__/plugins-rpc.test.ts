@@ -32,6 +32,11 @@ import {
   handlePluginsInstall,
   handlePluginsSearch,
 } from "../plugins.js";
+import type { ResponseFrame } from "../../protocol/frames.js";
+
+function payload(r: ResponseFrame): Record<string, unknown> {
+  return r.payload as Record<string, unknown>;
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -42,7 +47,7 @@ describe("handlePluginsList", () => {
     mockListInstalled.mockReturnValue([]);
     const result = handlePluginsList();
     expect(result.ok).toBe(true);
-    expect(result.payload?.plugins).toEqual([]);
+    expect(payload(result).plugins).toEqual([]);
   });
 
   it("returns installed plugins", () => {
@@ -53,7 +58,7 @@ describe("handlePluginsList", () => {
     mockListInstalled.mockReturnValue(plugins);
     const result = handlePluginsList();
     expect(result.ok).toBe(true);
-    expect(result.payload?.plugins).toHaveLength(2);
+    expect(payload(result).plugins).toHaveLength(2);
   });
 });
 
@@ -92,7 +97,7 @@ describe("handlePluginsInstall", () => {
       pluginId: "test-plugin",
     });
     expect(result.ok).toBe(true);
-    expect(result.payload?.plugin).toEqual(manifest);
+    expect(payload(result).plugin).toEqual(manifest);
     expect(mockLoadPlugin).toHaveBeenCalledWith("test-plugin");
   });
 
@@ -112,7 +117,7 @@ describe("handlePluginsSearch", () => {
     mockSearchPlugins.mockResolvedValue([]);
     const result = await handlePluginsSearch({});
     expect(result.ok).toBe(true);
-    expect(result.payload?.results).toEqual([]);
+    expect(payload(result).results).toEqual([]);
   });
 
   it("passes query and registries", async () => {
@@ -124,7 +129,7 @@ describe("handlePluginsSearch", () => {
       registries: ["https://r1.io"],
     });
     expect(result.ok).toBe(true);
-    expect(result.payload?.results).toEqual(results);
+    expect(payload(result).results).toEqual(results);
     expect(mockSearchPlugins).toHaveBeenCalledWith("auth", ["https://r1.io"]);
   });
 

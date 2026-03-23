@@ -66,10 +66,10 @@ const baseConfig: FederationConfig = {
   gatewayId: "gw-test-id",
   gatewayName: "test-gateway",
   peers: [],
+  maxPeers: 10,
   heartbeatInterval: 30000,
   reconnectMaxDelay: 30000,
   messageQueueSize: 1000,
-  federationTokens: [],
 };
 
 beforeEach(() => {

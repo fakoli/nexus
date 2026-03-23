@@ -31,6 +31,11 @@ import {
   handleFederationDisconnect,
   handleFederationStatus,
 } from "../federation.js";
+import type { ResponseFrame } from "../../protocol/frames.js";
+
+function payload(r: ResponseFrame): Record<string, unknown> & { peers: Array<Record<string, unknown>> } {
+  return r.payload as Record<string, unknown> & { peers: Array<Record<string, unknown>> };
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -43,7 +48,7 @@ describe("handleFederationPeers", () => {
   it("returns empty peer list", () => {
     const result = handleFederationPeers();
     expect(result.ok).toBe(true);
-    expect(result.payload?.peers).toEqual([]);
+    expect(payload(result).peers).toEqual([]);
   });
 
   it("returns peer list from manager", () => {
@@ -52,8 +57,8 @@ describe("handleFederationPeers", () => {
     ]);
     const result = handleFederationPeers();
     expect(result.ok).toBe(true);
-    expect(result.payload?.peers).toHaveLength(1);
-    expect(result.payload?.peers[0].gatewayId).toBe("peer-1");
+    expect(payload(result).peers).toHaveLength(1);
+    expect((payload(result).peers as Array<Record<string, unknown>>)[0].gatewayId).toBe("peer-1");
   });
 });
 
@@ -83,8 +88,8 @@ describe("handleFederationConnect", () => {
       token: "secret-token",
     });
     expect(result.ok).toBe(true);
-    expect(result.payload?.peerKey).toBe("peer-key-1");
-    expect(result.payload?.status).toBe("connecting");
+    expect(payload(result).peerKey).toBe("peer-key-1");
+    expect(payload(result).status).toBe("connecting");
   });
 
   it("returns error when addPeer throws", () => {
@@ -115,7 +120,7 @@ describe("handleFederationDisconnect", () => {
     mockRemovePeer.mockReturnValue(true);
     const result = handleFederationDisconnect({ gatewayId: "peer-1" });
     expect(result.ok).toBe(true);
-    expect(result.payload?.disconnected).toBe(true);
+    expect(payload(result).disconnected).toBe(true);
   });
 
   it("returns PEER_NOT_FOUND when peer does not exist", () => {
@@ -130,10 +135,10 @@ describe("handleFederationStatus", () => {
   it("returns status with no peers", () => {
     const result = handleFederationStatus();
     expect(result.ok).toBe(true);
-    expect(result.payload?.gatewayId).toBe("gw-123");
-    expect(result.payload?.gatewayName).toBe("nexus-test");
-    expect(result.payload?.totalPeers).toBe(0);
-    expect(result.payload?.connectedPeers).toBe(0);
+    expect(payload(result).gatewayId).toBe("gw-123");
+    expect(payload(result).gatewayName).toBe("nexus-test");
+    expect(payload(result).totalPeers).toBe(0);
+    expect(payload(result).connectedPeers).toBe(0);
   });
 
   it("counts connected peers correctly", () => {
@@ -144,7 +149,7 @@ describe("handleFederationStatus", () => {
     ]);
     const result = handleFederationStatus();
     expect(result.ok).toBe(true);
-    expect(result.payload?.totalPeers).toBe(3);
-    expect(result.payload?.connectedPeers).toBe(2);
+    expect(payload(result).totalPeers).toBe(3);
+    expect(payload(result).connectedPeers).toBe(2);
   });
 });

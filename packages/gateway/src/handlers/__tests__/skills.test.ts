@@ -27,6 +27,11 @@ import {
   handleSkillsList,
   handleSkillsSearch,
 } from "../skills.js";
+import type { ResponseFrame } from "../../protocol/frames.js";
+
+function payload(r: ResponseFrame): Record<string, unknown> & { skills: Array<Record<string, unknown>>; results: unknown[] } {
+  return r.payload as Record<string, unknown> & { skills: Array<Record<string, unknown>>; results: unknown[] };
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -51,9 +56,9 @@ describe("handleSkillsList", () => {
 
     const result = handleSkillsList();
     expect(result.ok).toBe(true);
-    expect(result.payload?.skills).toHaveLength(1);
-    expect(result.payload?.skills[0].id).toBe("skill-1");
-    expect(result.payload?.skills[0].name).toBe("Skill One");
+    expect(payload(result).skills).toHaveLength(1);
+    expect(payload(result).skills[0].id).toBe("skill-1");
+    expect(payload(result).skills[0].name).toBe("Skill One");
     expect(mockLoadSkills).not.toHaveBeenCalled();
   });
 
@@ -76,8 +81,8 @@ describe("handleSkillsList", () => {
     const result = handleSkillsList();
     expect(result.ok).toBe(true);
     expect(mockLoadSkills).toHaveBeenCalled();
-    expect(result.payload?.skills).toHaveLength(1);
-    expect(result.payload?.skills[0].id).toBe("auto-loaded");
+    expect(payload(result).skills).toHaveLength(1);
+    expect(payload(result).skills[0].id).toBe("auto-loaded");
   });
 
   it("maps manifest fields correctly", () => {
@@ -97,7 +102,7 @@ describe("handleSkillsList", () => {
     mockListSkills.mockReturnValue(skills);
 
     const result = handleSkillsList();
-    const skill = result.payload?.skills[0];
+    const skill = payload(result).skills[0];
     expect(skill).toEqual({
       id: "s1",
       name: "N",
@@ -115,7 +120,7 @@ describe("handleSkillsSearch", () => {
     mockSearchClawhubSkills.mockResolvedValue([]);
     const result = await handleSkillsSearch({});
     expect(result.ok).toBe(true);
-    expect(result.payload?.results).toEqual([]);
+    expect(payload(result).results).toEqual([]);
     expect(mockSearchClawhubSkills).toHaveBeenCalledWith("");
   });
 
@@ -125,7 +130,7 @@ describe("handleSkillsSearch", () => {
 
     const result = await handleSkillsSearch({ query: "code" });
     expect(result.ok).toBe(true);
-    expect(result.payload?.results).toEqual(results);
+    expect(payload(result).results).toEqual(results);
     expect(mockSearchClawhubSkills).toHaveBeenCalledWith("code");
   });
 

@@ -77,7 +77,7 @@ describe("web-search tool", () => {
     }));
 
     await registeredTool.execute({ query: 'hello <script>"test"</script>' });
-    const calledUrl = (fetch as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    const calledUrl = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(calledUrl).not.toContain("<");
     expect(calledUrl).not.toContain(">");
   });

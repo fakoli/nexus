@@ -29,8 +29,6 @@ const STTParams = z.object({
   sessionId: z.string().optional(),
 });
 
-const VoicesParams = z.object({}).passthrough();
-
 // ── Helpers ─────────────────────────────────────────────────────────
 
 function getSpeechConfig(): z.infer<typeof SpeechConfigSchema> {

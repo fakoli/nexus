@@ -7,7 +7,6 @@
  */
 import type { WebSocket } from "ws";
 import { createLogger, events, appendMessage, getOrCreateSession, getOrCreateAgent } from "@nexus/core";
-import type { NexusEvents } from "@nexus/core";
 import {
   FederationHandshakeSchema,
   FederationFrameSchema,

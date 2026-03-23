@@ -42,14 +42,6 @@ const PluginsUninstallParams = z.object({
   pluginId: z.string().min(1),
 });
 
-const SkillsSearchParams = z.object({
-  query: z.string().default(""),
-});
-
-const SkillsInstallParams = z.object({
-  skillId: z.string().min(1),
-});
-
 // ---------------------------------------------------------------------------
 // Plugin handlers
 // ---------------------------------------------------------------------------

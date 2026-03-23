@@ -200,7 +200,6 @@ function routeInboundStream(stream: FederatedStream): void {
 
 export function forwardToAll(sessionId: string, frame: FederationFrame): void {
   // Forward to outbound peers
-  const data = JSON.stringify(frame);
   for (const entry of outboundClients.values()) {
     if (entry.client.isConnected()) {
       if (frame.type === "federation:message") {

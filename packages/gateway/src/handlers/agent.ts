@@ -5,7 +5,7 @@
  */
 import { z } from "zod";
 import { createLogger, getSession } from "@nexus/core";
-import { runAgent, registerFilesystemTools, registerBashTool } from "@nexus/agent";
+import { runAgent, registerFilesystemTools, registerBashTool, registerWebFetchTool } from "@nexus/agent";
 import type { ResponseFrame } from "../protocol/frames.js";
 
 const log = createLogger("gateway:agent");
@@ -16,6 +16,7 @@ function ensureToolsRegistered(): void {
   if (toolsRegistered) return;
   registerFilesystemTools();
   registerBashTool();
+  registerWebFetchTool();
   toolsRegistered = true;
   log.info("Default tools registered");
 }

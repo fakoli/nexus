@@ -303,7 +303,7 @@ describe("quickstart: gateway URL construction", () => {
   });
 
   it("uses 0.0.0.0 host when bind is 'all'", () => {
-    const bind = "all";
+    const bind: string = "all";
     const port = 19200;
     const host = bind === "loopback" ? "127.0.0.1" : "0.0.0.0";
     const url = `ws://${host}:${port}/ws`;

@@ -104,3 +104,13 @@ export type {
   DailyUsage,
 } from "./usage.js";
 export { startCronRunner, computeNextRunAt } from "./cron-runner.js";
+export {
+  addMemory,
+  getMemory,
+  updateMemory,
+  deleteMemory,
+  searchMemory,
+  listMemory,
+  countMemory,
+} from "./memory.js";
+export type { MemoryNote } from "./memory.js";

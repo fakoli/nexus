@@ -10,6 +10,8 @@ import {
   getOrCreateAgent,
   createLogger,
   recordAudit,
+  getAllConfig,
+  enforcePromptGuard,
 } from "@nexus/core";
 import { buildContext } from "./context-builder.js";
 import { resolveProvider } from "./providers/resolver.js";
@@ -48,6 +50,10 @@ export async function runAgent(options: RunOptions): Promise<RunResult> {
   // Ensure agent and session exist
   getOrCreateAgent(agentId);
   getOrCreateSession(options.sessionId, agentId);
+
+  // Enforce prompt guard before processing user input
+  const securityConfig = getAllConfig().security;
+  enforcePromptGuard(options.userMessage, securityConfig.promptGuard);
 
   // Persist user message
   appendMessage(options.sessionId, "user", options.userMessage);

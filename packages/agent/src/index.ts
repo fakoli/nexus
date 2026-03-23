@@ -28,3 +28,9 @@ export {
   compactHistory,
   DEFAULT_MAX_TOKENS,
 } from "./compaction.js";
+export {
+  registerCommand,
+  getCommands,
+  executeSlashCommand,
+} from "./commands/index.js";
+export type { SlashCommand, CommandContext, ExecuteResult } from "./commands/index.js";

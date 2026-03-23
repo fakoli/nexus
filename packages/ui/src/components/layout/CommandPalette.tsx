@@ -1,4 +1,4 @@
-import { type Component, For, createSignal, createMemo, onCleanup } from "solid-js";
+import { type Component, For, Show, createSignal, createMemo } from "solid-js";
 import { setTab } from "../../stores/actions";
 import type { TabName } from "../../gateway/types";
 import { tokens as t } from "../../design/tokens";
@@ -23,6 +23,7 @@ const ALL_COMMANDS: Command[] = [
   { id: "nav:cron",      label: "Go to Cron",      description: "Schedule recurring tasks",   shortcut: "G R", action: () => setTab("cron" as TabName) },
   { id: "nav:config",    label: "Go to Config",    description: "Edit configuration",         shortcut: "G X", action: () => setTab("config" as TabName) },
   { id: "nav:analytics", label: "Go to Analytics", description: "View usage and stats",       shortcut: "G N", action: () => setTab("analytics" as TabName) },
+  { id: "ui:focus",      label: "Enter Focus Mode", description: "Hide chrome, chat only",    action: () => window.dispatchEvent(new CustomEvent("nexus:focus-mode")) },
 ];
 
 function fuzzyMatch(needle: string, haystack: string): boolean {
@@ -72,9 +73,8 @@ const CommandPalette: Component<Props> = (props) => {
     }
   };
 
-  if (!props.open) return null;
-
   return (
+    <Show when={props.open}>
     <div
       style={{ position: "fixed", inset: "0", background: t.color.bgOverlay, "z-index": "1000", display: "flex", "align-items": "flex-start", "justify-content": "center", "padding-top": "15vh" }}
       onClick={props.onClose}
@@ -133,6 +133,7 @@ const CommandPalette: Component<Props> = (props) => {
         </div>
       </div>
     </div>
+    </Show>
   );
 };
 

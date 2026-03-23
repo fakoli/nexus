@@ -21,3 +21,6 @@ export { resolveSafePath, detectSymlinkEscape } from "./path-guard.js";
 
 export { checkMountAccess, getDefaultMounts } from "./workspace-mount.js";
 export type { WorkspaceConfig, MountEntry, AccessResult } from "./workspace-mount.js";
+
+export { runSecurityAudit } from "./audit-report.js";
+export type { AuditReport, AuditCheck } from "./audit-report.js";

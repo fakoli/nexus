@@ -1,4 +1,5 @@
 import { gateway, setStore, store } from "./app";
+import { getTuningParams } from "./session-tuning";
 import type { Message, SessionInfo } from "../gateway/types";
 
 // ── chat.send / agent.run ─────────────────────────────────────────────────────
@@ -37,6 +38,7 @@ export async function sendMessage(text: string): Promise<void> {
     await gateway.request("agent.stream", {
       sessionId: store.session.id,
       message: trimmed,
+      ...getTuningParams(),
     });
     // `sending` will be set to false by the agent:delta { type: "done" } event
   } catch (err) {

@@ -75,6 +75,19 @@ vi.mock("../gateway/client", () => ({
   })),
 }));
 
+// Mock session-tuning so sendMessage tests are deterministic
+vi.mock("../stores/session-tuning", () => ({
+  getTuningParams: vi.fn(() => ({
+    model: "claude-sonnet-4-6",
+    provider: "anthropic",
+    thinkLevel: "off",
+    temperature: 0.7,
+    maxTokens: 4096,
+    fastMode: false,
+    verbose: false,
+  })),
+}));
+
 // Import modules under test AFTER mocks are set up
 const { store } = await import("../stores/app");
 const {
@@ -136,6 +149,13 @@ describe("sendMessage", () => {
     expect(mockRequest).toHaveBeenCalledWith("agent.stream", {
       sessionId: "sess-abc",
       message: "test message",
+      model: "claude-sonnet-4-6",
+      provider: "anthropic",
+      thinkLevel: "off",
+      temperature: 0.7,
+      maxTokens: 4096,
+      fastMode: false,
+      verbose: false,
     });
   });
 

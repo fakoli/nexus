@@ -65,6 +65,7 @@ export {
   detectSymlinkEscape,
   checkMountAccess,
   getDefaultMounts,
+  runSecurityAudit,
 } from "./security/index.js";
 export type {
   Detection,
@@ -76,6 +77,8 @@ export type {
   WorkspaceConfig,
   MountEntry,
   AccessResult,
+  AuditReport,
+  AuditCheck,
 } from "./security/index.js";
 export {
   createCronJob,

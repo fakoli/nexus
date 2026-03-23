@@ -2,6 +2,8 @@
  * Chat RPC handlers.
  *
  * - chat.send  — append a user message to a session, return the message ID.
+ *               If the content starts with "/" it is routed to the slash
+ *               command framework instead of being stored as a message.
  * - chat.history — retrieve message history for a session.
  */
 import { z } from "zod";
@@ -10,8 +12,10 @@ import {
   getMessages,
   getMessageCount,
   getSession,
+  setConfig,
   createLogger,
 } from "@nexus/core";
+import { executeSlashCommand } from "@nexus/agent";
 import type { ResponseFrame } from "../protocol/frames.js";
 
 const log = createLogger("gateway:chat");
@@ -33,7 +37,7 @@ const ChatHistoryParams = z.object({
 
 // ── Handlers ────────────────────────────────────────────────────────
 
-export function handleChatSend(params: Record<string, unknown>): ResponseFrame {
+export async function handleChatSend(params: Record<string, unknown>): Promise<ResponseFrame> {
   const parsed = ChatSendParams.safeParse(params);
   if (!parsed.success) {
     return {
@@ -52,6 +56,25 @@ export function handleChatSend(params: Record<string, unknown>): ResponseFrame {
       ok: false,
       error: { code: "SESSION_NOT_FOUND", message: `Session ${sessionId} not found` },
     };
+  }
+
+  // Slash command interception — only for user-role messages starting with "/"
+  if (role === "user" && content.startsWith("/")) {
+    const ctx = {
+      sessionId,
+      agentId: session.agentId,
+      setConfig: (key: string, value: unknown) => setConfig(key, value),
+    };
+    const result = await executeSlashCommand(content, ctx);
+    if (result.handled) {
+      log.info({ sessionId, command: content.split(" ")[0] }, "Slash command handled");
+      return {
+        id: "",
+        ok: true,
+        payload: { command: true, response: result.response ?? "" },
+      };
+    }
+    // Not a recognised command — fall through to normal message append
   }
 
   const messageId = appendMessage(sessionId, role, content, metadata);

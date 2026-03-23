@@ -1,4 +1,4 @@
-import { createEffect, Match, Switch, onMount, onCleanup } from "solid-js";
+import { createEffect, createSignal, Match, Switch, onMount, onCleanup, Show } from "solid-js";
 import { store, setStore } from "./stores/app";
 import { initGateway } from "./stores/actions";
 import { DEFAULT_GATEWAY_URL } from "./constants";
@@ -10,9 +10,14 @@ import SessionList from "./components/sessions/SessionList";
 import ConfigPanel from "./components/config/ConfigPanel";
 import LoginPrompt from "./components/LoginPrompt";
 import Toast from "./components/shared/Toast";
+import AgentList from "./components/agents/AgentList";
+import AgentEditor from "./components/agents/AgentEditor";
+import BootstrapEditor from "./components/agents/BootstrapEditor";
 
 // ── Root App ───────────────────────────────────────────────────────────────
 export default function App() {
+  const [selectedAgentId, setSelectedAgentId] = createSignal("");
+  const [showBootstrap, setShowBootstrap] = createSignal(false);
   // Initialise gateway connection once on mount when credentials are present.
   onMount(() => {
     const savedUrl   = localStorage.getItem("nexus_gateway_url");
@@ -64,11 +69,18 @@ export default function App() {
               <ConfigPanel />
             </Match>
             <Match when={store.ui.tab === "agents"}>
-              <div class="placeholder-view">
-                <span class="placeholder-icon">⬡</span>
-                <h2>Agents</h2>
-                <p>Agent management coming soon.</p>
-              </div>
+              <Show when={showBootstrap() && selectedAgentId()} fallback={
+                <div style={{ display: "flex", height: "100%", overflow: "hidden" }}>
+                  <div style={{ width: "340px", "flex-shrink": "0", "border-right": "1px solid #3a3a5c", overflow: "hidden" }}>
+                    <AgentList selectedId={selectedAgentId()} onSelect={setSelectedAgentId} />
+                  </div>
+                  <div style={{ flex: "1", overflow: "hidden" }}>
+                    <AgentEditor agentId={selectedAgentId()} onOpenBootstrap={() => setShowBootstrap(true)} />
+                  </div>
+                </div>
+              }>
+                <BootstrapEditor agentId={selectedAgentId()} onClose={() => setShowBootstrap(false)} />
+              </Show>
             </Match>
             <Match when={store.ui.tab === "cron"}>
               <div class="placeholder-view">

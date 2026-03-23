@@ -8,6 +8,12 @@ const ChatInput: Component = () => {
   const handleSend = () => {
     const text = store.chat.input.trim();
     if (!text || store.chat.sending) return;
+    // Handle /focus command — dispatch event; ChatView listens
+    if (text === "/focus") {
+      setStore("chat", "input", "");
+      window.dispatchEvent(new CustomEvent("nexus:focus-mode"));
+      return;
+    }
     sendMessage(text);
   };
 

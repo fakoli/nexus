@@ -1,6 +1,8 @@
-import { Component, For, onMount, createEffect } from "solid-js";
+import { Component, For, onMount, createEffect, Show } from "solid-js";
 import { store } from "../../stores/app";
 import MessageBubble from "./MessageBubble";
+import { deletedMessages, showDeleted, toggleShowDeleted } from "../../stores/chat-state";
+import { tokens as t } from "../../design/tokens";
 
 const MessageList: Component = () => {
   let bottomRef: HTMLDivElement | undefined;
@@ -15,6 +17,8 @@ const MessageList: Component = () => {
     bottomRef?.scrollIntoView({ behavior: "instant" });
   });
 
+  const hasDeleted = () => deletedMessages().size > 0;
+
   return (
     <div
       style={{
@@ -26,6 +30,36 @@ const MessageList: Component = () => {
         gap: "2px",
       }}
     >
+      {/* Show-deleted toggle */}
+      <Show when={hasDeleted()}>
+        <div
+          style={{
+            display: "flex",
+            "justify-content": "center",
+            "padding-bottom": t.space.sm,
+          }}
+        >
+          <button
+            onClick={toggleShowDeleted}
+            style={{
+              background: "transparent",
+              border: `1px solid ${t.color.border}`,
+              "border-radius": t.radius.full,
+              color: showDeleted() ? t.color.warning : t.color.textDim,
+              cursor: "pointer",
+              "font-size": t.font.sizeSm,
+              "font-family": t.font.family,
+              padding: `2px ${t.space.sm}`,
+              transition: `color ${t.transition.normal}`,
+            }}
+          >
+            {showDeleted()
+              ? `Hide deleted (${deletedMessages().size})`
+              : `Show deleted (${deletedMessages().size})`}
+          </button>
+        </div>
+      </Show>
+
       <For
         each={store.session.messages}
         fallback={
@@ -43,6 +77,7 @@ const MessageList: Component = () => {
       >
         {(msg) => (
           <MessageBubble
+            id={msg.id}
             role={msg.role}
             content={msg.content}
             createdAt={msg.timestamp}

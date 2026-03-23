@@ -32,6 +32,7 @@ const Sidebar: Component = () => {
       display: "flex", "flex-direction": "column", "align-items": expanded() ? "stretch" : "center",
       padding: `${t.space.sm} 0`, "z-index": "10", overflow: "hidden",
       transition: `width ${t.transition.slow}, min-width ${t.transition.slow}`,
+      "will-change": "width",
     }}>
 
       {/* Logo / brand mark */}
@@ -46,7 +47,8 @@ const Sidebar: Component = () => {
         <For each={NAV_ITEMS}>
           {(item) => {
             const isActive = () => store.ui.tab === item.id;
-            const count = item.count ? item.count() : null;
+            // Reactive count — evaluated as a function so SolidJS tracks it
+            const count = () => item.count ? item.count() : null;
 
             const btn = (
               <button
@@ -68,13 +70,13 @@ const Sidebar: Component = () => {
                 <span style={{ "font-size": "15px", "line-height": "1", "flex-shrink": "0", width: "20px", "text-align": "center" }}>{item.icon}</span>
                 {expanded() && (
                   <span style={{ flex: "1", "text-align": "left", overflow: "hidden", "text-overflow": "ellipsis", "white-space": "nowrap" }}>
-                    {count != null ? `${item.label} (${count})` : item.label}
+                    {count() != null ? `${item.label} (${count()})` : item.label}
                   </span>
                 )}
               </button>
             );
 
-            return expanded() ? btn : <Tooltip text={count != null ? `${item.label} (${count})` : item.label}>{btn}</Tooltip>;
+            return expanded() ? btn : <Tooltip text={count() != null ? `${item.label} (${count()})` : item.label}>{btn}</Tooltip>;
           }}
         </For>
       </div>

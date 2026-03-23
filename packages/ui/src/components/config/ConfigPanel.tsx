@@ -36,7 +36,14 @@ const ConfigPanel: Component = () => {
   const filteredSections = createMemo(() => {
     const q = search().toLowerCase();
     if (!q) return SECTIONS;
-    return SECTIONS.filter(s => s.label.toLowerCase().includes(q) || s.group.toLowerCase().includes(q));
+    const results = SECTIONS.filter(s =>
+      s.label.toLowerCase().includes(q) || s.group.toLowerCase().includes(q)
+    );
+    // If the active section was filtered out, auto-select the first visible one
+    if (results.length > 0 && !results.find(s => s.id === active())) {
+      setActive(results[0].id);
+    }
+    return results;
   });
 
   const doSave = async () => {
@@ -46,6 +53,7 @@ const ConfigPanel: Component = () => {
     try {
       if (s === "channels") {
         showToast("Channel config is managed via environment variables", "success");
+        setSaving(false);
         return;
       }
       await saveConfig(s, { ...store.config[s] as Record<string, unknown> });

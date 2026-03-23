@@ -42,47 +42,47 @@ describe('handlers: handleChatSend', () => {
 
   it('returns ok:true with messageId on valid params', async () => {
     const { handleChatSend } = await import('../handlers/chat.js');
-    const result = handleChatSend({ sessionId, content: 'Hello!' });
+    const result = await handleChatSend({ sessionId, content: 'Hello!' });
     expect(result.ok).toBe(true);
     expect((result.payload as { messageId: number }).messageId).toBeGreaterThan(0);
   });
 
   it('defaults role to "user"', async () => {
     const { handleChatSend } = await import('../handlers/chat.js');
-    const result = handleChatSend({ sessionId, content: 'No role specified' });
+    const result = await handleChatSend({ sessionId, content: 'No role specified' });
     expect(result.ok).toBe(true);
   });
 
   it('accepts explicit role "assistant"', async () => {
     const { handleChatSend } = await import('../handlers/chat.js');
-    const result = handleChatSend({ sessionId, content: 'Response', role: 'assistant' });
+    const result = await handleChatSend({ sessionId, content: 'Response', role: 'assistant' });
     expect(result.ok).toBe(true);
   });
 
   it('fails with SESSION_NOT_FOUND for unknown sessionId', async () => {
     const { handleChatSend } = await import('../handlers/chat.js');
-    const result = handleChatSend({ sessionId: 'ghost-session', content: 'Hello' });
+    const result = await handleChatSend({ sessionId: 'ghost-session', content: 'Hello' });
     expect(result.ok).toBe(false);
     expect(result.error?.code).toBe('SESSION_NOT_FOUND');
   });
 
   it('fails with INVALID_PARAMS when content is empty', async () => {
     const { handleChatSend } = await import('../handlers/chat.js');
-    const result = handleChatSend({ sessionId, content: '' });
+    const result = await handleChatSend({ sessionId, content: '' });
     expect(result.ok).toBe(false);
     expect(result.error?.code).toBe('INVALID_PARAMS');
   });
 
   it('fails with INVALID_PARAMS when sessionId is missing', async () => {
     const { handleChatSend } = await import('../handlers/chat.js');
-    const result = handleChatSend({ content: 'Hello' });
+    const result = await handleChatSend({ content: 'Hello' });
     expect(result.ok).toBe(false);
     expect(result.error?.code).toBe('INVALID_PARAMS');
   });
 
   it('fails with INVALID_PARAMS for invalid role', async () => {
     const { handleChatSend } = await import('../handlers/chat.js');
-    const result = handleChatSend({ sessionId, content: 'Hi', role: 'admin' });
+    const result = await handleChatSend({ sessionId, content: 'Hi', role: 'admin' });
     expect(result.ok).toBe(false);
     expect(result.error?.code).toBe('INVALID_PARAMS');
   });

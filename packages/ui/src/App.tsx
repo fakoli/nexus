@@ -19,6 +19,9 @@ import PluginManager from "./components/plugins/PluginManager";
 import Dashboard from "./components/overview/Dashboard";
 import LogViewer from "./components/debug/LogViewer";
 import DebugConsole from "./components/debug/DebugConsole";
+import FederationView from "./components/views/FederationView";
+import SkillsView from "./components/views/SkillsView";
+import { responsiveCss } from "./design/responsive";
 
 // ── Root App ───────────────────────────────────────────────────────────────
 export default function App() {
@@ -106,6 +109,12 @@ export default function App() {
             <Match when={store.ui.tab === "analytics"}>
               <UsageDashboard />
             </Match>
+            <Match when={store.ui.tab === "federation"}>
+              <FederationView />
+            </Match>
+            <Match when={store.ui.tab === "skills"}>
+              <SkillsView />
+            </Match>
           </Switch>
         </div>
       </div>
@@ -116,6 +125,7 @@ export default function App() {
       />
 
       <Toast />
+      <style>{responsiveCss}</style>
     </div>
   );
 }

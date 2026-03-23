@@ -115,6 +115,20 @@ import {
   handleSkillsSearch,
 } from "./handlers/skills.js";
 
+// ── Federation system ────────────────────────────────────────────────
+import {
+  handleFederationPeers,
+  handleFederationConnect,
+  handleFederationDisconnect,
+  handleFederationStatus,
+} from "./handlers/federation.js";
+import {
+  startFederation,
+  stopFederation,
+  handleFederationConnection,
+} from "./federation/index.js";
+import { FederationConfigSchema } from "./federation/config.js";
+
 const log = createLogger("gateway:server");
 
 const PROTO_VERSION = 1;
@@ -175,6 +189,13 @@ const handlers: Record<string, Handler> = {
   "speech.tts": handleSpeechTTS,
   "speech.stt": handleSpeechSTT,
   "speech.voices": handleSpeechVoices,
+  "plugins.list": handlePluginsList,
+  "plugins.install": handlePluginsInstall,
+  "plugins.uninstall": handlePluginsUninstall,
+  "plugins.search": handlePluginsSearch,
+  "skills.list": handleSkillsList,
+  "skills.install": handleSkillsInstall,
+  "skills.search": handleSkillsSearch,
 };
 
 log.info({ methods: Object.keys(handlers) }, "RPC handlers registered");

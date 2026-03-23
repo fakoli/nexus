@@ -21,8 +21,10 @@ const NAV_ITEMS: NavItem[] = [
   { id: "plugins",   label: "Plugins",   icon: "⬡" },
   { id: "config",    label: "Config",    icon: "⚙" },
   { id: "analytics", label: "Analytics", icon: "↗" },
-  { id: "logs",      label: "Logs",      icon: "▤" },
-  { id: "debug",     label: "Debug",     icon: "⌥" },
+  { id: "federation", label: "Federation", icon: "\u{1F310}" },
+  { id: "skills",    label: "Skills",    icon: "\u{26A1}" },
+  { id: "logs",      label: "Logs",      icon: "\u25A4" },
+  { id: "debug",     label: "Debug",     icon: "\u2325" },
 ];
 
 const Sidebar: Component = () => {
@@ -30,14 +32,17 @@ const Sidebar: Component = () => {
   const w = () => expanded() ? t.sidebar.expanded : t.sidebar.collapsed;
 
   return (
-    <nav style={{
-      width: w(), "min-width": w(), "flex-shrink": "0",
-      background: t.color.bgSidebar, "border-right": `1px solid ${t.color.border}`,
-      display: "flex", "flex-direction": "column", "align-items": expanded() ? "stretch" : "center",
-      padding: `${t.space.sm} 0`, "z-index": "10", overflow: "hidden",
-      transition: `width ${t.transition.slow}, min-width ${t.transition.slow}`,
-      "will-change": "width",
-    }}>
+    <nav
+      class={`nx-sidebar${expanded() ? " nx-sidebar--open" : ""}`}
+      style={{
+        width: w(), "min-width": w(), "flex-shrink": "0",
+        background: t.color.bgSidebar, "border-right": `1px solid ${t.color.border}`,
+        display: "flex", "flex-direction": "column", "align-items": expanded() ? "stretch" : "center",
+        padding: `${t.space.sm} 0`, "z-index": "10", overflow: "hidden",
+        transition: `width ${t.transition.slow}, min-width ${t.transition.slow}`,
+        "will-change": "width",
+      }}
+    >
 
       {/* Logo / brand mark */}
       <div style={{ padding: `${t.space.sm} ${expanded() ? t.space.md : "0"}`, "margin-bottom": t.space.sm, display: "flex", "align-items": "center", "justify-content": expanded() ? "flex-start" : "center", "flex-shrink": "0" }}>

@@ -45,6 +45,7 @@ const MessageBubble: Component<MessageBubbleProps> = (props) => {
   return (
     <Show when={!hidden()}>
       <div
+        class="nx-message-row"
         style={{
           display: "flex",
           "flex-direction": "column",
@@ -81,7 +82,7 @@ const MessageBubble: Component<MessageBubbleProps> = (props) => {
             visible={hovered()}
           />
 
-          <div style={bubbleStyle()}>
+          <div class="nx-message-bubble" style={bubbleStyle()}>
             <Show
               when={isTool()}
               fallback={<span innerHTML={renderMarkdown(props.content)} />}

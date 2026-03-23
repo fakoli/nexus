@@ -196,6 +196,10 @@ const handlers: Record<string, Handler> = {
   "skills.list": handleSkillsList,
   "skills.install": handleSkillsInstall,
   "skills.search": handleSkillsSearch,
+  "federation.peers": handleFederationPeers,
+  "federation.connect": handleFederationConnect,
+  "federation.disconnect": handleFederationDisconnect,
+  "federation.status": handleFederationStatus,
 };
 
 log.info({ methods: Object.keys(handlers) }, "RPC handlers registered");
@@ -564,6 +568,31 @@ export function startGateway(portOverride?: number): GatewayHandle {
 
   const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
 
+  // ── Federation WebSocket endpoint ───────────────────────────────────
+  const federationWss = new WebSocketServer({ server: httpServer, path: "/ws/federation" });
+  const fedRaw = getConfig("federation");
+  const fedResult = FederationConfigSchema.safeParse(fedRaw ?? {});
+  const fedConfig = fedResult.success ? fedResult.data : FederationConfigSchema.parse({});
+
+  if (fedConfig.enabled) {
+    startFederation(fedConfig);
+    log.info("Federation enabled and started");
+  }
+
+  federationWss.on("connection", (ws: WebSocket) => {
+    if (!fedConfig.enabled) {
+      ws.close(4403, "Federation not enabled");
+      return;
+    }
+    handleFederationConnection(
+      ws,
+      fedConfig.gatewayId ?? "",
+      fedConfig.gatewayName,
+      fedConfig.token,
+      fedConfig.maxPeers,
+    );
+  });
+
   wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
     // Always use a UUID so that two simultaneous connections from the same IP
     // get distinct map entries (using remoteAddress caused the second connection
@@ -619,6 +648,12 @@ export function startGateway(portOverride?: number): GatewayHandle {
       // Unload plugins before closing DB
       const loadedIds = await pluginLoadPromise;
       await unloadAllPlugins(loadedIds);
+
+      // Stop federation before closing client connections.
+      if (fedConfig.enabled) {
+        stopFederation();
+      }
+      federationWss.close();
 
       for (const client of clients.values()) {
         client.ws.close(1001, "Server shutting down");

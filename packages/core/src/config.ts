@@ -78,6 +78,17 @@ export const FederationConfigSchema = z.object({
   reconnectMaxDelay: z.number().default(30000),
 });
 
+export const PluginsConfigSchema = z.object({
+  registries: z.array(z.string()).default(["https://github.com/fakoli/fakoli-plugins"]),
+  autoUpdate: z.boolean().default(false),
+}).default({});
+
+export const ClawhubNexusConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  registryUrl: z.string().default("https://clawhub.dev/api/v1"),
+  apiKey: z.string().optional(),
+}).default({});
+
 export const NexusConfigSchema = z.object({
   gateway: GatewayConfigSchema.default({}),
   agent: AgentConfigSchema.default({}),
@@ -85,6 +96,8 @@ export const NexusConfigSchema = z.object({
   channels: ChannelsConfigSchema,
   speech: SpeechConfigSchema.default({}),
   federation: FederationConfigSchema.default({}),
+  plugins: PluginsConfigSchema,
+  clawhub: ClawhubNexusConfigSchema,
 });
 
 export type NexusConfig = z.infer<typeof NexusConfigSchema>;
@@ -97,6 +110,8 @@ export type TTSConfig = z.infer<typeof TTSConfigSchema>;
 export type STTConfig = z.infer<typeof STTConfigSchema>;
 export type FederationConfig = z.infer<typeof FederationConfigSchema>;
 export type FederationPeerConfig = z.infer<typeof FederationPeerConfigSchema>;
+export type PluginsConfig = z.infer<typeof PluginsConfigSchema>;
+export type ClawhubNexusConfig = z.infer<typeof ClawhubNexusConfigSchema>;
 
 export function getConfig(key: string): unknown {
   const db = getDb();
@@ -134,6 +149,8 @@ export function getAllConfig(): NexusConfig {
     channels: flat["channels"] ?? {},
     speech: flat["speech"] ?? {},
     federation: flat["federation"] ?? {},
+    plugins: flat["plugins"] ?? {},
+    clawhub: flat["clawhub"] ?? {},
   });
 }
 

@@ -53,7 +53,20 @@ export async function runAgent(options: RunOptions): Promise<RunResult> {
 
   // Enforce prompt guard before processing user input
   const securityConfig = getAllConfig().security;
-  enforcePromptGuard(options.userMessage, securityConfig.promptGuard);
+  try {
+    enforcePromptGuard(options.userMessage, securityConfig.promptGuard);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log.warn({ sessionId: options.sessionId, error: msg }, "Prompt guard blocked message");
+    const errorId = appendMessage(options.sessionId, "assistant", `Blocked: ${msg}`);
+    return {
+      content: `Blocked: ${msg}`,
+      sessionId: options.sessionId,
+      messageId: errorId,
+      toolCallCount: 0,
+      usage: { inputTokens: 0, outputTokens: 0 },
+    };
+  }
 
   // Persist user message
   appendMessage(options.sessionId, "user", options.userMessage);

@@ -33,10 +33,20 @@ function rowToNote(row: MemoryRow): MemoryNote {
     id: row.id,
     scope: row.scope,
     content: row.content,
-    tags: row.tags ? row.tags.split(",").map((t) => t.trim()) : [],
+    tags: row.tags ? JSON.parse(row.tags) as string[] : [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+/** Serialize tags as a JSON array for safe storage. */
+function serializeTags(tags: string[]): string | null {
+  return tags.length > 0 ? JSON.stringify(tags) : null;
+}
+
+/** Escape SQL LIKE wildcards so literal %, _, and \ are matched exactly. */
+function escapeLike(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
 }
 
 /**
@@ -49,12 +59,16 @@ export function addMemory(
 ): MemoryNote {
   const db = getDb();
   const id = randomUUID();
-  const tagStr = tags.length > 0 ? tags.join(",") : null;
+  const tagStr = serializeTags(tags);
   db.prepare(
     `INSERT INTO memory_notes (id, scope, content, tags) VALUES (?, ?, ?, ?)`,
   ).run(id, scope, content, tagStr);
   log.info({ id, scope, tagCount: tags.length }, "Memory note stored");
-  return getMemory(id) as MemoryNote;
+  const note = getMemory(id);
+  if (!note) {
+    throw new Error(`Failed to read back memory note ${id} after insert`);
+  }
+  return note;
 }
 
 /**
@@ -79,7 +93,7 @@ export function updateMemory(
 
   const content = updates.content ?? existing.content;
   const tags = updates.tags ?? existing.tags;
-  const tagStr = tags.length > 0 ? tags.join(",") : null;
+  const tagStr = serializeTags(tags);
 
   db.prepare(
     `UPDATE memory_notes SET content = ?, tags = ?, updated_at = unixepoch() WHERE id = ?`,
@@ -120,15 +134,16 @@ export function searchMemory(options: {
   }
 
   if (options.tags && options.tags.length > 0) {
+    // Tags are stored as JSON arrays, so search for the tag string within the JSON
     for (const tag of options.tags) {
-      conditions.push("(',' || tags || ',') LIKE ?");
-      params.push(`%,${tag},%`);
+      conditions.push("tags LIKE ? ESCAPE '\\'");
+      params.push(`%${JSON.stringify(escapeLike(tag))}%`);
     }
   }
 
   if (options.query !== undefined) {
-    conditions.push("content LIKE ?");
-    params.push(`%${options.query}%`);
+    conditions.push("content LIKE ? ESCAPE '\\'");
+    params.push(`%${escapeLike(options.query)}%`);
   }
 
   const limit = options.limit ?? 50;

@@ -34,6 +34,39 @@ vi.mock("../providers/openai.js", () => ({
   })),
 }));
 
+vi.mock("../providers/deepseek.js", () => ({
+  createDeepSeekProvider: vi.fn((apiKey: string) => ({
+    id: "deepseek",
+    name: "DeepSeek",
+    async *stream() { yield { type: "done" as const }; },
+    async complete() {
+      return { content: "mock", toolCalls: [], usage: { inputTokens: 1, outputTokens: 1 }, stopReason: "end_turn" as const };
+    },
+  })),
+}));
+
+vi.mock("../providers/ollama.js", () => ({
+  createOllamaProvider: vi.fn(() => ({
+    id: "ollama",
+    name: "Ollama",
+    async *stream() { yield { type: "done" as const }; },
+    async complete() {
+      return { content: "mock", toolCalls: [], usage: { inputTokens: 1, outputTokens: 1 }, stopReason: "end_turn" as const };
+    },
+  })),
+}));
+
+vi.mock("../providers/openrouter.js", () => ({
+  createOpenRouterProvider: vi.fn((apiKey: string) => ({
+    id: "openrouter",
+    name: "OpenRouter",
+    async *stream() { yield { type: "done" as const }; },
+    async complete() {
+      return { content: "mock", toolCalls: [], usage: { inputTokens: 1, outputTokens: 1 }, stopReason: "end_turn" as const };
+    },
+  })),
+}));
+
 // Import after mocks are set up
 import { resolveProvider, markProviderFailed } from "../providers/resolver.js";
 
@@ -42,15 +75,25 @@ describe("providers/resolver", () => {
 
   beforeEach(() => {
     runMigrations();
-    // Reset env vars
+    // Reset env vars — clear all provider keys so tests start clean
     delete process.env.ANTHROPIC_API_KEY;
     delete process.env.OPENAI_API_KEY;
+    delete process.env.GOOGLE_API_KEY;
+    delete process.env.GROQ_API_KEY;
+    delete process.env.DEEPSEEK_API_KEY;
+    delete process.env.OPENROUTER_API_KEY;
+    delete process.env.OLLAMA_API_KEY;
   });
 
   afterEach(() => {
     // Restore env
     process.env.ANTHROPIC_API_KEY = originalEnv.ANTHROPIC_API_KEY;
     process.env.OPENAI_API_KEY = originalEnv.OPENAI_API_KEY;
+    process.env.GOOGLE_API_KEY = originalEnv.GOOGLE_API_KEY;
+    process.env.GROQ_API_KEY = originalEnv.GROQ_API_KEY;
+    process.env.DEEPSEEK_API_KEY = originalEnv.DEEPSEEK_API_KEY;
+    process.env.OPENROUTER_API_KEY = originalEnv.OPENROUTER_API_KEY;
+    process.env.OLLAMA_API_KEY = originalEnv.OLLAMA_API_KEY;
   });
 
   describe("resolveProvider with ANTHROPIC_API_KEY set", () => {

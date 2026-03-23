@@ -87,11 +87,10 @@ export default function AgentEditor(props: AgentEditorProps) {
     "font-size": t.font.sizeMd,
     "font-weight": t.font.weightMedium,
     color: active ? t.color.accent : t.color.textMuted,
-    "border-bottom": `2px solid ${active ? t.color.accent : "transparent"}`,
-    transition: `color ${t.transition.normal}`,
     background: "transparent",
     border: "none",
-    "border-bottom-color": active ? t.color.accent : "transparent",
+    "border-bottom": `2px solid ${active ? t.color.accent : "transparent"}`,
+    transition: `color ${t.transition.normal}`,
   });
 
   return (

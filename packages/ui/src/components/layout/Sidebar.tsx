@@ -13,12 +13,16 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  { id: "overview",  label: "Overview",  icon: "⊞" },
   { id: "chat",      label: "Chat",      icon: "◎" },
   { id: "sessions",  label: "Sessions",  icon: "≡", count: () => store.sessions.length || null },
   { id: "agents",    label: "Agents",    icon: "⬡", count: () => store.agents.length || null },
   { id: "cron",      label: "Cron",      icon: "◷", count: () => store.cron.jobs.length || null },
+  { id: "plugins",   label: "Plugins",   icon: "⬡" },
   { id: "config",    label: "Config",    icon: "⚙" },
   { id: "analytics", label: "Analytics", icon: "↗" },
+  { id: "logs",      label: "Logs",      icon: "▤" },
+  { id: "debug",     label: "Debug",     icon: "⌥" },
 ];
 
 const Sidebar: Component = () => {

@@ -337,12 +337,22 @@ registerCommand({
   handler: async (_args, ctx) => {
     const cfg = getAllConfig();
     const session = getSession(ctx.sessionId);
+    // Redact secrets before exposing config in the chat window.
+    const safeSecurity = {
+      ...cfg.security,
+      gatewayToken:    cfg.security.gatewayToken    ? "[REDACTED]" : undefined,
+      gatewayPassword: cfg.security.gatewayPassword ? "[REDACTED]" : undefined,
+    };
+    const safeChannels = {
+      telegram: { ...cfg.channels.telegram, token: cfg.channels.telegram?.token ? "[REDACTED]" : undefined },
+      discord:  { ...cfg.channels.discord,  token: cfg.channels.discord?.token  ? "[REDACTED]" : undefined },
+    };
     const info = {
       sessionId: ctx.sessionId,
       agentId: ctx.agentId,
       sessionState: session?.state,
       messageCount: getMessageCount(ctx.sessionId),
-      config: cfg,
+      config: { ...cfg, security: safeSecurity, channels: safeChannels },
       nodeVersion: process.version,
       platform: process.platform,
       pid: process.pid,

@@ -141,10 +141,6 @@ export async function createNewSession(): Promise<void> {
 // ── connect + authenticate ───────────────────────────────────────────────────
 
 /**
- * Called from LoginPrompt to establish a gateway connection with explicit
- * URL and token. Resolves when HelloOk is received, rejects on auth failure.
- */
-/**
  * Called from App.tsx on mount / createEffect when credentials are available.
  * Non-throwing — errors go into the store.
  */

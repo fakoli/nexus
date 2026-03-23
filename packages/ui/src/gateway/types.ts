@@ -34,7 +34,13 @@ export type RequestMethod =
   | "usage.summary"
   | "usage.by-session"
   | "usage.by-model"
-  | "usage.timeseries";
+  | "usage.timeseries"
+  | "gateway.status"
+  | "security.audit"
+  | "plugins.list"
+  | "plugins.install"
+  | "plugins.uninstall"
+  | "plugins.search";
 
 export interface RequestFrame {
   id: string;
@@ -61,7 +67,8 @@ export type EventName =
   | "session:message"
   | "session:created"
   | "config:changed"
-  | "agent:delta";
+  | "agent:delta"
+  | "log";
 
 export interface EventFrame {
   event: EventName;
@@ -137,10 +144,49 @@ export interface UsageSummary {
   periodEnd: number;
 }
 
+// ── Plugin types ───────────────────────────────────────────────────────────────
+
+export interface InstalledPlugin {
+  id: string;
+  name: string;
+  version: string;
+  status: "active" | "disabled" | "error";
+}
+
+export interface MarketplaceEntry {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  author: string;
+}
+
 // ── Connection state ──────────────────────────────────────────────────────────
 
 export type ConnectionStatus = "disconnected" | "connecting" | "connected";
 
-export type TabName = "chat" | "sessions" | "config" | "agents" | "cron" | "analytics";
+export type TabName = "overview" | "chat" | "sessions" | "config" | "agents" | "cron" | "analytics" | "plugins" | "logs" | "debug";
+
+// ── Gateway status types ───────────────────────────────────────────────────────
+
+export interface GatewayStatus {
+  uptime: number;
+  version: string;
+  connectedClients: number;
+  activeSessions: number;
+  totalMessages: number;
+}
+
+// ── Log entry type ─────────────────────────────────────────────────────────────
+
+export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
+
+export interface LogEntry {
+  id: string;
+  ts: number;
+  level: LogLevel;
+  msg: string;
+  data?: Record<string, unknown>;
+}
 
 export type ThemeName = "dark" | "light";

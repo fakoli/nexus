@@ -64,7 +64,7 @@ const initialState: AppStore = {
   agents: [],
   cron: { jobs: [], history: [] },
   usage: { summary: null },
-  ui: { tab: "chat", theme: "dark", gatewayUrl: "", token: "", commandPaletteOpen: false },
+  ui: { tab: "overview", theme: "dark", gatewayUrl: "", token: "", commandPaletteOpen: false },
 };
 
 export const [store, setStore] = createStore<AppStore>(initialState);

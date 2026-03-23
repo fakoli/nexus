@@ -17,13 +17,16 @@ interface Props {
 }
 
 const ALL_COMMANDS: Command[] = [
-  { id: "nav:chat",      label: "Go to Chat",      description: "Open the chat view",         shortcut: "G C", action: () => setTab("chat" as TabName) },
-  { id: "nav:sessions",  label: "Go to Sessions",  description: "Open session history",       shortcut: "G S", action: () => setTab("sessions" as TabName) },
-  { id: "nav:agents",    label: "Go to Agents",    description: "Manage agents",              shortcut: "G A", action: () => setTab("agents" as TabName) },
-  { id: "nav:cron",      label: "Go to Cron",      description: "Schedule recurring tasks",   shortcut: "G R", action: () => setTab("cron" as TabName) },
-  { id: "nav:config",    label: "Go to Config",    description: "Edit configuration",         shortcut: "G X", action: () => setTab("config" as TabName) },
-  { id: "nav:analytics", label: "Go to Analytics", description: "View usage and stats",       shortcut: "G N", action: () => setTab("analytics" as TabName) },
-  { id: "ui:focus",      label: "Enter Focus Mode", description: "Hide chrome, chat only",    action: () => window.dispatchEvent(new CustomEvent("nexus:focus-mode")) },
+  { id: "nav:overview",  label: "Go to Overview",  description: "Dashboard — status, stats, activity", shortcut: "G O", action: () => setTab("overview" as TabName) },
+  { id: "nav:chat",      label: "Go to Chat",      description: "Open the chat view",                  shortcut: "G C", action: () => setTab("chat" as TabName) },
+  { id: "nav:sessions",  label: "Go to Sessions",  description: "Open session history",                shortcut: "G S", action: () => setTab("sessions" as TabName) },
+  { id: "nav:agents",    label: "Go to Agents",    description: "Manage agents",                       shortcut: "G A", action: () => setTab("agents" as TabName) },
+  { id: "nav:cron",      label: "Go to Cron",      description: "Schedule recurring tasks",            shortcut: "G R", action: () => setTab("cron" as TabName) },
+  { id: "nav:config",    label: "Go to Config",    description: "Edit configuration",                  shortcut: "G X", action: () => setTab("config" as TabName) },
+  { id: "nav:analytics", label: "Go to Analytics", description: "View usage and stats",                shortcut: "G N", action: () => setTab("analytics" as TabName) },
+  { id: "nav:logs",      label: "Go to Logs",      description: "Real-time log stream from gateway",   shortcut: "G L", action: () => setTab("logs" as TabName) },
+  { id: "nav:debug",     label: "Go to Debug",     description: "Raw RPC inspector and event monitor", shortcut: "G D", action: () => setTab("debug" as TabName) },
+  { id: "ui:focus",      label: "Enter Focus Mode", description: "Hide chrome, chat only",             action: () => window.dispatchEvent(new CustomEvent("nexus:focus-mode")) },
 ];
 
 function fuzzyMatch(needle: string, haystack: string): boolean {

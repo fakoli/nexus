@@ -13,6 +13,12 @@ import Toast from "./components/shared/Toast";
 import AgentList from "./components/agents/AgentList";
 import AgentEditor from "./components/agents/AgentEditor";
 import BootstrapEditor from "./components/agents/BootstrapEditor";
+import { UsageDashboard } from "./components/analytics/UsageDashboard";
+import CronList from "./components/cron/CronList";
+import PluginManager from "./components/plugins/PluginManager";
+import Dashboard from "./components/overview/Dashboard";
+import LogViewer from "./components/debug/LogViewer";
+import DebugConsole from "./components/debug/DebugConsole";
 
 // ── Root App ───────────────────────────────────────────────────────────────
 export default function App() {
@@ -59,6 +65,15 @@ export default function App() {
             <Match when={!hasCredentials()}>
               <LoginPrompt />
             </Match>
+            <Match when={store.ui.tab === "overview"}>
+              <Dashboard />
+            </Match>
+            <Match when={store.ui.tab === "logs"}>
+              <LogViewer />
+            </Match>
+            <Match when={store.ui.tab === "debug"}>
+              <DebugConsole />
+            </Match>
             <Match when={store.ui.tab === "chat"}>
               <ChatView />
             </Match>
@@ -83,18 +98,13 @@ export default function App() {
               </Show>
             </Match>
             <Match when={store.ui.tab === "cron"}>
-              <div class="placeholder-view">
-                <span class="placeholder-icon">◷</span>
-                <h2>Cron Jobs</h2>
-                <p>Scheduled task management coming soon.</p>
-              </div>
+              <CronList />
+            </Match>
+            <Match when={store.ui.tab === "plugins"}>
+              <PluginManager />
             </Match>
             <Match when={store.ui.tab === "analytics"}>
-              <div class="placeholder-view">
-                <span class="placeholder-icon">↗</span>
-                <h2>Analytics</h2>
-                <p>Usage statistics and insights coming soon.</p>
-              </div>
+              <UsageDashboard />
             </Match>
           </Switch>
         </div>

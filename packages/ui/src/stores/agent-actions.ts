@@ -26,7 +26,7 @@ export async function createAgent(
   config: Record<string, unknown>,
 ): Promise<void> {
   try {
-    await gateway.request("agents.create", { id, ...config });
+    await gateway.request("agents.create", { id, config });
     await loadAgents();
   } catch (err) {
     setStore("connection", "error", (err as Error).message);
@@ -43,7 +43,7 @@ export async function updateAgent(
   config: Record<string, unknown>,
 ): Promise<void> {
   try {
-    await gateway.request("agents.update", { id, ...config });
+    await gateway.request("agents.update", { id, config });
     await loadAgents();
   } catch (err) {
     setStore("connection", "error", (err as Error).message);

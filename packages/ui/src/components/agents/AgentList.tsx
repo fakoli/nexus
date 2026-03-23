@@ -105,7 +105,7 @@ export default function AgentList(props: AgentListProps) {
       <Modal title="Delete Agent" open={confirmDelete() !== null} onClose={() => setConfirmDelete(null)}
         actions={<>
           <Button variant="secondary" onClick={() => setConfirmDelete(null)}>Cancel</Button>
-          <Button style={{ background: t.color.error }} onClick={() => void handleDelete(confirmDelete()!)}>Delete</Button>
+          <Button style={{ background: t.color.error }} onClick={() => { const id = confirmDelete(); if (id) void handleDelete(id); }}>Delete</Button>
         </>}>
         <p style={{ color: t.color.text }}>Delete agent <strong>{confirmDelete()}</strong>? This cannot be undone.</p>
       </Modal>

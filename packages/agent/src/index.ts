@@ -22,6 +22,10 @@ export { createAnthropicProvider } from "./providers/anthropic.js";
 export { createOpenAIProvider } from "./providers/openai.js";
 export { createGoogleProvider } from "./providers/google.js";
 export { createGroqProvider } from "./providers/groq.js";
+export { createDeepSeekProvider, DEEPSEEK_DEFAULT_MODEL } from "./providers/deepseek.js";
+export { createOllamaProvider, OLLAMA_DEFAULT_MODEL } from "./providers/ollama.js";
+export type { OllamaProviderOptions } from "./providers/ollama.js";
+export { createOpenRouterProvider } from "./providers/openrouter.js";
 export {
   estimateTokens,
   shouldCompact,

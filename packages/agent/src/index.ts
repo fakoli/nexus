@@ -8,6 +8,7 @@ export type { StreamingOptions, StreamingResult } from "./streaming-loop.js";
 export { registerTool, getRegisteredTools, getToolDefinitions, executeTool } from "./tool-executor.js";
 export { registerFilesystemTools } from "./tools/filesystem.js";
 export { registerBashTool } from "./tools/bash.js";
+export { registerWebFetchTool } from "./tools/web-fetch.js";
 export type {
   Provider,
   ProviderMessage,

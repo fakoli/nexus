@@ -69,7 +69,7 @@ function rowToHistory(row: CronHistoryRow): CronRunHistory {
 // ── CRUD ─────────────────────────────────────────────────────────────
 
 export function createCronJob(
-  job: Omit<CronJob, "lastRunAt" | "nextRunAt">,
+  job: Omit<CronJob, "id" | "lastRunAt" | "nextRunAt"> & { id?: string },
 ): CronJob {
   const db = getDb();
   const id = job.id ?? uuid();

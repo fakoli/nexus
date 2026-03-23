@@ -76,6 +76,14 @@ import {
   handleUsageTimeSeries,
 } from "./handlers/usage.js";
 import {
+  handleMemoryAdd,
+  handleMemoryGet,
+  handleMemoryUpdate,
+  handleMemoryDelete,
+  handleMemorySearch,
+  handleMemoryList,
+} from "./handlers/memory.js";
+import {
   handleAgentsList,
   handleAgentsGet,
   handleAgentsCreate,
@@ -141,6 +149,12 @@ const handlers: Record<string, Handler> = {
   "usage.by-session": handleUsageBySession,
   "usage.by-model": handleUsageByModel,
   "usage.timeseries": handleUsageTimeSeries,
+  "memory.add": handleMemoryAdd,
+  "memory.get": handleMemoryGet,
+  "memory.update": handleMemoryUpdate,
+  "memory.delete": handleMemoryDelete,
+  "memory.search": handleMemorySearch,
+  "memory.list": handleMemoryList,
 };
 
 log.info({ methods: Object.keys(handlers) }, "RPC handlers registered");
@@ -482,6 +496,8 @@ export function startGateway(portOverride?: number): GatewayHandle {
 
   const config = getAllConfig();
   const port = portOverride ?? config.gateway.port;
+  const bindSetting = config.gateway.bind;
+  const host = bindSetting === "loopback" ? "127.0.0.1" : "0.0.0.0";
 
   const app = createApp();
   setupEventForwarding();
@@ -538,9 +554,9 @@ export function startGateway(portOverride?: number): GatewayHandle {
     });
   });
 
-  httpServer.listen(port, () => {
+  httpServer.listen(port, host, () => {
     events.emit("gateway:started", { port });
-    log.info({ port }, "Nexus gateway listening");
+    log.info({ port, host, bind: bindSetting }, "Nexus gateway listening");
   });
 
   return {

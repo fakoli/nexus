@@ -17,6 +17,7 @@ import {
   getToolDefinitions,
   registerFilesystemTools,
   registerBashTool,
+  registerWebFetchTool,
   runStreamingLoop,
 } from "@nexus/agent";
 import type { StreamDelta } from "@nexus/agent";
@@ -30,6 +31,7 @@ function ensureToolsRegistered(): void {
   if (toolsRegistered) return;
   registerFilesystemTools();
   registerBashTool();
+  registerWebFetchTool();
   toolsRegistered = true;
   log.info("Default tools registered");
 }

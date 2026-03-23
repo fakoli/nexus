@@ -20,7 +20,6 @@ import {
   createLogger,
 } from "@nexus/core";
 import { registerCommand, getCommands } from "./registry.js";
-import type { CommandContext } from "./registry.js";
 
 const log = createLogger("agent:command-handlers");
 

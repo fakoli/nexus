@@ -3,7 +3,10 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "composite": true
+    "composite": true,
+    "paths": {
+      "@nexus/core": ["./src/index.ts"]
+    }
   },
   "include": ["src/**/*.ts"]
 }

@@ -132,39 +132,21 @@ describe("registry: listInstalled / isInstalled / getInstalledVersion", () => {
     expect(updates).toEqual([]);
   });
 
-  it("checkUpdates detects a newer version from a mocked registry", async () => {
+  it("checkUpdates returns an array (gracefully handles unreachable registry)", async () => {
     const { recordInstall, checkUpdates } = await import("../registry.js");
 
     recordInstall({
       id: "old-plugin",
       name: "Old Plugin",
       version: "1.0.0",
-      registryUrl: "https://github.com/fakoli/fakoli-plugins",
+      registryUrl: "http://localhost:1/unreachable",
       installPath: "/tmp/old-plugin",
     });
 
-    // Mock fetchRegistry to return version 2.0.0
-    vi.doMock("../marketplace.js", () => ({
-      fetchRegistry: vi.fn().mockResolvedValue({
-        version: 1,
-        plugins: [
-          {
-            id: "old-plugin",
-            name: "Old Plugin",
-            description: "A plugin",
-            version: "2.0.0",
-            author: "fakoli",
-            repository: "https://github.com/fakoli/fakoli-plugins",
-            path: "plugins/old-plugin",
-          },
-        ],
-      }),
-    }));
-
-    // Re-import with the mock applied
-    const { checkUpdates: checkUpdatesWithMock } = await import("../registry.js");
-    const updates = await checkUpdatesWithMock();
-    // The mock might not be applied due to module caching — verify the structure either way
+    // The registry is unreachable so checkUpdates should return an empty array
+    // (the implementation logs a warning and continues)
+    const updates = await checkUpdates();
     expect(Array.isArray(updates)).toBe(true);
-  });
+    expect(updates).toEqual([]);
+  }, 10_000);
 });

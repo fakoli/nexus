@@ -77,7 +77,7 @@ export function handleCronCreate(params: Record<string, unknown>): ResponseFrame
   }
   const { id, schedule, agentId, message, enabled } = parsed.data;
   const now = Math.floor(Date.now() / 1000);
-  const job = createCronJob({ id: id ?? undefined, schedule, agentId, message, enabled });
+  const job = createCronJob({ id, schedule, agentId, message, enabled });
   // Set initial nextRunAt
   updateCronJob(job.id, { nextRunAt: computeNextRunAt(schedule, now) });
   const updated = getCronJob(job.id);

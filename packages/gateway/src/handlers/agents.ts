@@ -28,8 +28,6 @@ const log = createLogger("gateway:agents");
 
 // ── Param schemas ────────────────────────────────────────────────────
 
-const AgentsListParams = z.object({}).passthrough();
-
 const AgentsGetParams = z.object({
   id: z.string(),
 });

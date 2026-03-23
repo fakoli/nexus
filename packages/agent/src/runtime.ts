@@ -10,6 +10,8 @@ import {
   getOrCreateAgent,
   createLogger,
   recordAudit,
+  getAllConfig,
+  enforcePromptGuard,
 } from "@nexus/core";
 import { buildContext } from "./context-builder.js";
 import { resolveProvider } from "./providers/resolver.js";
@@ -48,6 +50,23 @@ export async function runAgent(options: RunOptions): Promise<RunResult> {
   // Ensure agent and session exist
   getOrCreateAgent(agentId);
   getOrCreateSession(options.sessionId, agentId);
+
+  // Enforce prompt guard before processing user input
+  const securityConfig = getAllConfig().security;
+  try {
+    enforcePromptGuard(options.userMessage, securityConfig.promptGuard);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log.warn({ sessionId: options.sessionId, error: msg }, "Prompt guard blocked message");
+    const errorId = appendMessage(options.sessionId, "assistant", `Blocked: ${msg}`);
+    return {
+      content: `Blocked: ${msg}`,
+      sessionId: options.sessionId,
+      messageId: errorId,
+      toolCallCount: 0,
+      usage: { inputTokens: 0, outputTokens: 0 },
+    };
+  }
 
   // Persist user message
   appendMessage(options.sessionId, "user", options.userMessage);

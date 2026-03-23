@@ -1,6 +1,7 @@
 node_modules/
 dist/
 *.js.map
+*.d.ts
 *.d.ts.map
 .vite/
 .cache/

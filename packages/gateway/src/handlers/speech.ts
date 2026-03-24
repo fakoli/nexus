@@ -62,7 +62,7 @@ export async function handleSpeechTTS(
     };
   }
 
-  const provider = resolveTTSProvider(ttsConfig);
+  const provider = resolveTTSProvider(ttsConfig.provider);
 
   try {
     const result = await provider.synthesize({
@@ -128,7 +128,7 @@ export async function handleSpeechSTT(
     };
   }
 
-  const provider = resolveSTTProvider(sttConfig);
+  const provider = resolveSTTProvider(sttConfig.provider);
 
   try {
     const result = await provider.transcribe({
@@ -166,10 +166,10 @@ export async function handleSpeechVoices(
   _params: Record<string, unknown>,
 ): Promise<ResponseFrame> {
   const speechConfig = getSpeechConfig();
-  const provider = resolveTTSProvider(speechConfig.tts);
+  const provider = resolveTTSProvider(speechConfig.tts.provider);
 
   try {
-    const voices = await provider.listVoices();
+    const voices = provider.listVoices ? await provider.listVoices() : [];
     return {
       id: "",
       ok: true,

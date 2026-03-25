@@ -91,24 +91,30 @@ function summarise(text: string, max = 80): string {
 // ── Parse legacy content ─────────────────────────────────────────────────────
 
 function parseLegacy(role: string, content: string): ToolCardProps {
+  let obj: Record<string, unknown>;
   try {
-    const obj = JSON.parse(content) as Record<string, unknown>;
-    if (role === "tool_use") {
-      const name = typeof obj["name"] === "string" ? obj["name"]
-        : typeof obj["tool"] === "string" ? obj["tool"] : "tool";
-      const input = (typeof obj["input"] === "object" && obj["input"] !== null)
-        ? obj["input"] as Record<string, unknown> : obj;
-      return { toolName: name, input, status: "complete" };
+    const raw: unknown = JSON.parse(content);
+    if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+      return { toolName: role === "tool_use" ? "tool" : "Result", input: {}, output: content, status: "complete" };
     }
-    const isErr = obj["error"] !== undefined || obj["ok"] === false || obj["success"] === false;
-    return {
-      toolName: "Result",
-      input: obj,
-      status: isErr ? "error" : "complete",
-    };
+    obj = raw as Record<string, unknown>;
   } catch {
     return { toolName: role === "tool_use" ? "tool" : "Result", input: {}, output: content, status: "complete" };
   }
+  if (role === "tool_use") {
+    const name = typeof obj["name"] === "string" ? obj["name"]
+      : typeof obj["tool"] === "string" ? obj["tool"] : "tool";
+    const rawInput = obj["input"];
+    const input = (typeof rawInput === "object" && rawInput !== null && !Array.isArray(rawInput))
+      ? rawInput as Record<string, unknown> : obj;
+    return { toolName: name, input, status: "complete" };
+  }
+  const isErr = obj["error"] !== undefined || obj["ok"] === false || obj["success"] === false;
+  return {
+    toolName: "Result",
+    input: obj,
+    status: isErr ? "error" : "complete",
+  };
 }
 
 // ── Rich ToolCard ────────────────────────────────────────────────────────────

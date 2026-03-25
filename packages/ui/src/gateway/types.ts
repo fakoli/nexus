@@ -83,6 +83,8 @@ export type EventName =
   | "log"
   | "federation:peer:connected"
   | "federation:peer:disconnected"
+  | "federation:message:received"
+  | "federation:message:forwarded"
   | "speech:tts"
   | "speech:stt";
 

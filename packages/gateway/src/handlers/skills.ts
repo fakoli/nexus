@@ -46,7 +46,8 @@ export function handleSkillsList(): ResponseFrame {
     description: s.manifest.description,
     author: s.manifest.author,
     tags: s.manifest.tags,
-    triggers: s.manifest.triggers,
+    triggers: s.manifest.triggers ?? [],
+    source: s.source ?? "managed",
   }));
   return { id: "", ok: true, payload: { skills: payload } };
 }
@@ -98,7 +99,7 @@ export async function handleSkillsSearch(
     return {
       id: "",
       ok: true,
-      payload: { results },
+      payload: { skills: results },
     };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

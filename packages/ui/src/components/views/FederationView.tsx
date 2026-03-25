@@ -58,8 +58,9 @@ export const FederationView: Component = () => {
   const handleDisconnect = async (gatewayId: string): Promise<void> => {
     try {
       await gateway.request("federation.disconnect", { gatewayId });
-    } catch {
-      // errors are non-critical for disconnect
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Disconnect failed";
+      setError(msg);
     }
   };
 
@@ -197,7 +198,7 @@ const Th: Component<{ children: string }> = (props) => (
 
 const Td: Component<{ children: unknown }> = (props) => (
   <td style={{ padding: `${t.space.sm} ${t.space.sm}` }}>
-    {props.children as string}
+    {props.children}
   </td>
 );
 

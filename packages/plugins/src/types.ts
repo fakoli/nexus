@@ -116,11 +116,15 @@ export const SkillManifestSchema = z.object({
 
 export type SkillManifest = z.infer<typeof SkillManifestSchema>;
 
+export const SkillSourceSchema = z.enum(["bundled", "managed", "workspace"]);
+export type SkillSource = z.infer<typeof SkillSourceSchema>;
+
 export const SkillDefinitionSchema = z.object({
   manifest: SkillManifestSchema,
   systemPrompt: z.string(),
   tools: z.array(z.string()).optional(),
   maxTurns: z.number().optional(),
+  source: SkillSourceSchema.optional(),
 });
 
 export type SkillDefinition = z.infer<typeof SkillDefinitionSchema>;

@@ -9,6 +9,7 @@ export type {
   PluginContext,
   SkillManifest,
   SkillDefinition,
+  SkillSource,
 } from "./types.js";
 export {
   PluginManifestSchema,
@@ -16,6 +17,7 @@ export {
   MarketplaceEntrySchema,
   SkillManifestSchema,
   SkillDefinitionSchema,
+  SkillSourceSchema,
 } from "./types.js";
 
 // SDK — what plugin authors use

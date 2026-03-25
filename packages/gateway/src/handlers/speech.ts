@@ -33,8 +33,7 @@ const STTParams = z.object({
 
 function getSpeechConfig(): z.infer<typeof SpeechConfigSchema> {
   const fullConfig = getAllConfig();
-  const speechRaw = (fullConfig as Record<string, unknown>)["speech"];
-  return SpeechConfigSchema.parse(speechRaw ?? {});
+  return SpeechConfigSchema.parse(fullConfig.speech ?? {});
 }
 
 // ── Handlers ────────────────────────────────────────────────────────

@@ -1,6 +1,5 @@
 import { type Component, createSignal, For, Show } from "solid-js";
-import { store } from "../../stores/app";
-import { gateway } from "../../stores/app";
+import { store, gateway } from "../../stores/app";
 import { tokens as t } from "../../design/tokens";
 import { Badge, Button, Card, Input } from "../../design/components";
 import type { SkillInfo } from "../../gateway/types";
@@ -22,6 +21,7 @@ export const SkillsView: Component = () => {
   const [searchResults, setSearchResults] = createSignal<SkillInfo[]>([]);
   const [searching, setSearching] = createSignal(false);
   const [installing, setInstalling] = createSignal<string | null>(null);
+  const [error, setError] = createSignal("");
 
   const skills = () => store.skills.available;
 
@@ -40,11 +40,14 @@ export const SkillsView: Component = () => {
     const q = query().trim();
     if (!q) return;
     setSearching(true);
+    setError("");
     try {
       const res = await gateway.request("skills.search", { query: q });
-      const items = (res.skills as SkillInfo[] | undefined) ?? [];
+      const items = Array.isArray(res.skills) ? (res.skills as SkillInfo[]) : [];
       setSearchResults(items);
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Search failed";
+      setError(msg);
       setSearchResults([]);
     } finally {
       setSearching(false);
@@ -53,10 +56,12 @@ export const SkillsView: Component = () => {
 
   const handleInstall = async (skillId: string): Promise<void> => {
     setInstalling(skillId);
+    setError("");
     try {
       await gateway.request("skills.install", { skillId });
-    } catch {
-      // install error — non-critical for stub
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Install failed";
+      setError(msg);
     } finally {
       setInstalling(null);
     }
@@ -90,6 +95,12 @@ export const SkillsView: Component = () => {
             Search
           </Button>
         </div>
+
+        <Show when={error()}>
+          <span style={{ color: t.color.error, "font-size": t.font.sizeSm }}>
+            {error()}
+          </span>
+        </Show>
 
         {/* Search results */}
         <Show when={searchResults().length > 0}>

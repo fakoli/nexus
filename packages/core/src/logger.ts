@@ -64,12 +64,9 @@ export async function initLogLevel(): Promise<void> {
   events.on("config:changed", (payload) => {
     if (payload.key === "gateway" && typeof payload.value === "object" && payload.value !== null) {
       const gw = payload.value as Record<string, unknown>;
-      if (typeof gw.verbose === "boolean") {
-        setLogLevel(gw.verbose ? "debug" : "info");
+      if (typeof gw["verbose"] === "boolean") {
+        setLogLevel(gw["verbose"] ? "debug" : "info");
       }
-    }
-    if (payload.key === "gateway.verbose") {
-      setLogLevel(payload.value ? "debug" : "info");
     }
   });
 }

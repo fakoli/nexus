@@ -177,18 +177,21 @@ export function loadSkills(): SkillDefinition[] {
   // Tier 3 (lowest priority): bundled
   const bundled = loadSkillsFromDir(getBundledSkillsDir());
   for (const s of bundled) {
+    s.source = "bundled";
     skillRegistry.set(s.manifest.id, s);
   }
 
   // Tier 2: managed (~/.nexus/skills/)
   const managed = loadSkillsFromDir(getManagedSkillsDir());
   for (const s of managed) {
+    s.source = "managed";
     skillRegistry.set(s.manifest.id, s);
   }
 
   // Tier 1 (highest priority): workspace
   const workspace = loadSkillsFromDir(getWorkspaceSkillsDir());
   for (const s of workspace) {
+    s.source = "workspace";
     skillRegistry.set(s.manifest.id, s);
   }
 

@@ -29,8 +29,8 @@ import {
 } from "../skills.js";
 import type { ResponseFrame } from "../../protocol/frames.js";
 
-function payload(r: ResponseFrame): Record<string, unknown> & { skills: Array<Record<string, unknown>>; results: unknown[] } {
-  return r.payload as Record<string, unknown> & { skills: Array<Record<string, unknown>>; results: unknown[] };
+function payload(r: ResponseFrame): Record<string, unknown> & { skills: Array<Record<string, unknown>> } {
+  return r.payload as Record<string, unknown> & { skills: Array<Record<string, unknown>> };
 }
 
 beforeEach(() => {
@@ -111,6 +111,7 @@ describe("handleSkillsList", () => {
       author: "A",
       tags: ["a", "b"],
       triggers: ["/cmd"],
+      source: "managed",
     });
   });
 });
@@ -120,7 +121,7 @@ describe("handleSkillsSearch", () => {
     mockSearchClawhubSkills.mockResolvedValue([]);
     const result = await handleSkillsSearch({});
     expect(result.ok).toBe(true);
-    expect(payload(result).results).toEqual([]);
+    expect(payload(result).skills).toEqual([]);
     expect(mockSearchClawhubSkills).toHaveBeenCalledWith("");
   });
 
@@ -130,7 +131,7 @@ describe("handleSkillsSearch", () => {
 
     const result = await handleSkillsSearch({ query: "code" });
     expect(result.ok).toBe(true);
-    expect(payload(result).results).toEqual(results);
+    expect(payload(result).skills).toEqual(results);
     expect(mockSearchClawhubSkills).toHaveBeenCalledWith("code");
   });
 

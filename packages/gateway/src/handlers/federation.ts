@@ -23,7 +23,7 @@ const log = createLogger("gateway:federation");
 
 const ConnectPeerParams = z.object({
   url: z.string().url(),
-  token: z.string(),
+  token: z.string().optional().default(""),
   name: z.string().optional(),
 });
 

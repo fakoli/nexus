@@ -1,13 +1,10 @@
 /**
- * Plugin and skill RPC handlers.
+ * Plugin RPC handlers.
  *
- * - plugins.list     — list installed plugins
- * - plugins.install  — install a plugin from a registry
+ * - plugins.list      — list installed plugins
+ * - plugins.install   — install a plugin from a registry
  * - plugins.uninstall — uninstall a plugin
- * - plugins.search   — search marketplace registries
- * - skills.list      — list available skills (all tiers)
- * - skills.install   — install a skill from ClawhHub
- * - skills.search    — search ClawhHub for skills
+ * - plugins.search    — search marketplace registries
  */
 import { z } from "zod";
 import { createLogger } from "@nexus/core";

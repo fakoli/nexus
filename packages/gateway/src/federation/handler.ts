@@ -5,7 +5,7 @@
  * Validates the federation handshake, routes inbound messages to local
  * sessions, and forwards local events to federated peers.
  */
-import type { WebSocket } from "ws";
+import { WebSocket } from "ws";
 import { createLogger, events, appendMessage, getOrCreateSession, getOrCreateAgent } from "@nexus/core";
 import {
   FederationHandshakeSchema,
@@ -45,10 +45,19 @@ export function handleFederationConnection(
 ): void {
   let authed = false;
 
+  // Timeout unauthenticated connections to prevent resource exhaustion
+  const handshakeTimeout = setTimeout(() => {
+    if (!authed) {
+      log.warn("Federation handshake timeout — closing connection");
+      ws.close(4408, "Handshake timeout");
+    }
+  }, 10_000);
+
   ws.on("message", (data) => {
     const raw = data.toString();
 
     if (!authed) {
+      clearTimeout(handshakeTimeout);
       authed = processHandshake(
         ws, raw, localGatewayId, localGatewayName, expectedToken, maxPeers,
       );
@@ -59,10 +68,12 @@ export function handleFederationConnection(
   });
 
   ws.on("close", () => {
+    clearTimeout(handshakeTimeout);
     removePeerBySocket(ws);
   });
 
   ws.on("error", (err) => {
+    clearTimeout(handshakeTimeout);
     log.error({ err: err.message }, "Inbound federation WS error");
     removePeerBySocket(ws);
   });
@@ -98,6 +109,13 @@ function processHandshake(
   if (expectedToken && handshake.token !== expectedToken) {
     sendAck(ws, localGatewayId, localGatewayName, false, "Invalid token");
     ws.close(4401, "Invalid token");
+    return false;
+  }
+
+  // Reject duplicate gatewayId (prevents orphaned WebSocket leak)
+  if (inboundPeers.has(handshake.gatewayId)) {
+    sendAck(ws, localGatewayId, localGatewayName, false, "Peer already connected");
+    ws.close(4409, "Peer already connected");
     return false;
   }
 
@@ -191,6 +209,12 @@ function dispatchInboundFrame(frame: FederationFrame): void {
 }
 
 function handleInboundMessage(msg: FederatedMessage): void {
+  // Validate that the claimed origin is a known connected peer
+  if (!inboundPeers.has(msg.originGateway)) {
+    log.warn({ claimed: msg.originGateway }, "Message from unrecognized origin gateway, ignoring");
+    return;
+  }
+
   const session = getOrCreateSession(msg.sessionId, "default", "federation");
   appendMessage(session.id, msg.message.role, msg.message.content, msg.message.metadata);
 
@@ -275,7 +299,7 @@ export function disconnectInboundPeer(gatewayId: string): boolean {
 export function broadcastToInboundPeers(frame: FederationFrame): void {
   const data = JSON.stringify(frame);
   for (const peer of inboundPeers.values()) {
-    if (peer.ws.readyState === 1) {
+    if (peer.ws.readyState === WebSocket.OPEN) {
       peer.ws.send(data);
     }
   }

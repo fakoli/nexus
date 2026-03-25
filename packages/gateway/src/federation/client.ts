@@ -148,6 +148,15 @@ export class FederationClient {
   // ── Internal ────────────────────────────────────────────────────────
 
   private _doConnect(): void {
+    // Clean up any prior WebSocket to prevent listener/resource leaks
+    if (this.ws) {
+      this.ws.removeAllListeners();
+      if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
+        this.ws.close();
+      }
+      this.ws = null;
+    }
+
     const wsUrl = this.url.replace(/^http/, "ws");
     const fullUrl = `${wsUrl}/ws/federation`;
 

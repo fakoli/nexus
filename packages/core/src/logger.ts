@@ -54,7 +54,7 @@ export async function initLogLevel(): Promise<void> {
 
   try {
     const config = getAllConfig();
-    if (config.gateway.verbose) {
+    if (typeof config.gateway.verbose === "boolean" && config.gateway.verbose) {
       setLogLevel("debug");
     }
   } catch {

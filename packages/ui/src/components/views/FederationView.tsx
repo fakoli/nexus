@@ -1,4 +1,4 @@
-import { type Component, createSignal, For, Show } from "solid-js";
+import { type Component, type JSX, createSignal, For, Show } from "solid-js";
 import { store } from "../../stores/app";
 import { gateway } from "../../stores/app";
 import { tokens as t } from "../../design/tokens";
@@ -43,7 +43,7 @@ export const FederationView: Component = () => {
     try {
       await gateway.request("federation.connect", {
         url,
-        token: peerToken().trim() || undefined,
+        token: peerToken().trim(),
       });
       setPeerUrl("");
       setPeerToken("");
@@ -158,7 +158,7 @@ export const FederationView: Component = () => {
         <div style={{ display: "flex", "flex-direction": "column", gap: t.space.md }}>
           <Input
             label="Gateway URL"
-            placeholder="ws://peer-gateway:19200/ws"
+            placeholder="http(s)://host:port"
             value={peerUrl()}
             onInput={(e) => setPeerUrl(e.currentTarget.value)}
           />
@@ -196,7 +196,7 @@ const Th: Component<{ children: string }> = (props) => (
   </th>
 );
 
-const Td: Component<{ children: unknown }> = (props) => (
+const Td: Component<{ children?: JSX.Element }> = (props) => (
   <td style={{ padding: `${t.space.sm} ${t.space.sm}` }}>
     {props.children}
   </td>

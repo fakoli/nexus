@@ -36,8 +36,16 @@ export function registerWebFetchTool(): void {
       required: ["url"],
     },
     async execute(input) {
-      const url = input.url as string;
-      const rawHeaders = (input.headers ?? {}) as Record<string, string>;
+      if (typeof input.url !== "string" || input.url.length === 0) {
+        return JSON.stringify({ error: "url must be a non-empty string" });
+      }
+      const url = input.url;
+      const rawHeaders: Record<string, string> = {};
+      if (input.headers && typeof input.headers === "object" && !Array.isArray(input.headers)) {
+        for (const [k, v] of Object.entries(input.headers as Record<string, unknown>)) {
+          if (typeof v === "string") rawHeaders[k] = v;
+        }
+      }
 
       // Strip blocked headers (case-insensitive)
       const safeHeaders: Record<string, string> = {};

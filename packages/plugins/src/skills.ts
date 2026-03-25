@@ -6,6 +6,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { createLogger, getDataDir } from "@nexus/core";
 import { SkillManifestSchema } from "./types.js";
 import type { SkillDefinition } from "./types.js";
@@ -107,7 +108,7 @@ function parseSimpleYaml(yaml: string): Record<string, unknown> {
 // ---------------------------------------------------------------------------
 
 function getBundledSkillsDir(): string {
-  return path.join(path.dirname(new URL(import.meta.url).pathname), "bundled-skills");
+  return path.join(path.dirname(fileURLToPath(import.meta.url)), "bundled-skills");
 }
 
 function getManagedSkillsDir(): string {
@@ -227,7 +228,13 @@ export function installSkill(filename: string, content: string): SkillDefinition
 
   const managedDir = getManagedSkillsDir();
   const safeName = path.basename(filename);
+  if (!safeName || !safeName.endsWith(".md")) {
+    throw new Error(`Invalid skill filename: ${filename}`);
+  }
   const destPath = path.join(managedDir, safeName);
+  if (!destPath.startsWith(managedDir)) {
+    throw new Error("Invalid skill path — directory traversal detected");
+  }
   fs.writeFileSync(destPath, content, "utf8");
 
   const skill: SkillDefinition = {

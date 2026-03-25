@@ -111,7 +111,13 @@ export async function handleSpeechSTT(
 
   let audioBuffer: Buffer;
   try {
+    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(audioB64) || audioB64.length % 4 !== 0) {
+      return { id: "", ok: false, error: { code: "INVALID_AUDIO", message: "Invalid base64 audio data" } };
+    }
     audioBuffer = Buffer.from(audioB64, "base64");
+    if (audioBuffer.byteLength === 0) {
+      return { id: "", ok: false, error: { code: "INVALID_AUDIO", message: "Audio data is empty" } };
+    }
   } catch {
     return { id: "", ok: false, error: { code: "INVALID_AUDIO", message: "Invalid base64 audio data" } };
   }

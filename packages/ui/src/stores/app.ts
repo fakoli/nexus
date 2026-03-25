@@ -139,9 +139,14 @@ gateway.onEvent("agent:delta", (payload) => {
 
 // federation:peer:connected — a peer has connected
 gateway.onEvent("federation:peer:connected", (payload) => {
-  const peer = payload as unknown as FederatedPeer;
+  const p = payload as { gatewayId: string; gatewayName: string; direction: FederatedPeer["direction"] };
+  const peer: FederatedPeer = {
+    ...p,
+    status: "connected",
+    connectedAt: Date.now(),
+  };
   setStore("federation", "peers", (peers) => {
-    const filtered = peers.filter((p) => p.gatewayId !== peer.gatewayId);
+    const filtered = peers.filter((existing) => existing.gatewayId !== peer.gatewayId);
     return [...filtered, peer];
   });
 });

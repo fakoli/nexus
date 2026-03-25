@@ -43,7 +43,7 @@ export const SkillsView: Component = () => {
     setError("");
     try {
       const res = await gateway.request("skills.search", { query: q });
-      const items = Array.isArray(res.skills) ? (res.skills as SkillInfo[]) : [];
+      const items = Array.isArray(res.results) ? (res.results as SkillInfo[]) : [];
       setSearchResults(items);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Search failed";

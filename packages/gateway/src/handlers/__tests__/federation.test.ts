@@ -75,10 +75,11 @@ describe("handleFederationConnect", () => {
     expect(result.error?.code).toBe("INVALID_PARAMS");
   });
 
-  it("rejects missing token", () => {
+  it("accepts missing token (defaults to empty string)", () => {
+    mockAddPeer.mockReturnValue("peer-key-2");
     const result = handleFederationConnect({ url: "https://peer.example.com" });
-    expect(result.ok).toBe(false);
-    expect(result.error?.code).toBe("INVALID_PARAMS");
+    expect(result.ok).toBe(true);
+    expect(payload(result).peerKey).toBe("peer-key-2");
   });
 
   it("returns peerKey on valid params", () => {

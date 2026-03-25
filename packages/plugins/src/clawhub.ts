@@ -90,7 +90,7 @@ export async function searchClawhubSkills(query: string): Promise<ClawhubSkillEn
   const url = `${getBaseUrl()}/skills/search?q=${encodeURIComponent(query)}`;
   log.info({ url }, "Searching ClawhHub skills");
 
-  const res = await fetch(url, { headers: getHeaders() });
+  const res = await fetch(url, { headers: getHeaders(), signal: AbortSignal.timeout(10_000) });
   if (!res.ok) {
     throw new Error(`ClawhHub search failed: HTTP ${res.status} ${res.statusText}`);
   }
@@ -111,7 +111,7 @@ export async function getClawhubSkillDetails(skillId: string): Promise<ClawhubSk
   }
 
   const url = `${getBaseUrl()}/skills/${encodeURIComponent(skillId)}`;
-  const res = await fetch(url, { headers: getHeaders() });
+  const res = await fetch(url, { headers: getHeaders(), signal: AbortSignal.timeout(10_000) });
   if (!res.ok) {
     throw new Error(`ClawhHub skill fetch failed: HTTP ${res.status} ${res.statusText}`);
   }
@@ -134,7 +134,7 @@ export async function installClawhubSkill(skillId: string): Promise<void> {
   const url = `${getBaseUrl()}/skills/${encodeURIComponent(skillId)}/content`;
   log.info({ skillId, url }, "Downloading skill from ClawhHub");
 
-  const res = await fetch(url, { headers: getHeaders() });
+  const res = await fetch(url, { headers: getHeaders(), signal: AbortSignal.timeout(10_000) });
   if (!res.ok) {
     throw new Error(`ClawhHub skill download failed: HTTP ${res.status} ${res.statusText}`);
   }
@@ -160,7 +160,7 @@ export async function syncClawhubSkills(): Promise<void> {
   const url = `${getBaseUrl()}/skills/sync`;
   log.info({ url }, "Syncing skills with ClawhHub");
 
-  const res = await fetch(url, { headers: getHeaders() });
+  const res = await fetch(url, { headers: getHeaders(), signal: AbortSignal.timeout(30_000) });
   if (!res.ok) {
     throw new Error(`ClawhHub sync failed: HTTP ${res.status} ${res.statusText}`);
   }

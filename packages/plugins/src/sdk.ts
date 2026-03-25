@@ -1,4 +1,4 @@
-import type { PluginContext } from "./types.js";
+import type { PluginContext, SkillManifest } from "./types.js";
 
 // ---------------------------------------------------------------------------
 // Plugin shape definitions — the public API that plugin authors use
@@ -57,8 +57,21 @@ export interface ProviderPlugin extends ProviderPluginConfig {
   readonly _type: "provider-plugin";
 }
 
+export interface SkillPluginConfig extends PluginConfig {
+  /** The skill manifest with triggers, tags, etc. */
+  skillManifest: SkillManifest;
+  /** The system prompt for this skill. */
+  systemPrompt: string;
+  /** Maximum agent turns for this skill. */
+  maxTurns?: number;
+}
+
+export interface SkillPlugin extends SkillPluginConfig {
+  readonly _type: "skill-plugin";
+}
+
 // ---------------------------------------------------------------------------
-// Factory functions — definePlugin / defineChannelPlugin / defineProviderPlugin
+// Factory functions
 // ---------------------------------------------------------------------------
 
 /**
@@ -109,6 +122,22 @@ export function defineProviderPlugin(config: ProviderPluginConfig): ProviderPlug
   return { ...config, _type: "provider-plugin" };
 }
 
+/**
+ * Define a skill plugin that registers a slash-command skill in Nexus.
+ *
+ * @example
+ * export default defineSkillPlugin({
+ *   id: "my-summarizer",
+ *   name: "Summarizer",
+ *   version: "1.0.0",
+ *   skillManifest: { id: "summarize", name: "Summarize", version: "1.0.0", description: "..." },
+ *   systemPrompt: "You are a summarization assistant...",
+ * });
+ */
+export function defineSkillPlugin(config: SkillPluginConfig): SkillPlugin {
+  return { ...config, _type: "skill-plugin" };
+}
+
 /** Type guard — narrows an unknown export to Plugin */
 export function isPlugin(value: unknown): value is Plugin {
   return (
@@ -133,5 +162,14 @@ export function isProviderPlugin(value: unknown): value is ProviderPlugin {
     typeof value === "object" &&
     value !== null &&
     (value as ProviderPlugin)._type === "provider-plugin"
+  );
+}
+
+/** Type guard — narrows an unknown export to SkillPlugin */
+export function isSkillPlugin(value: unknown): value is SkillPlugin {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as SkillPlugin)._type === "skill-plugin"
   );
 }

@@ -97,3 +97,34 @@ export interface PluginContext {
     error(msg: string, data?: Record<string, unknown>): void;
   };
 }
+
+// ---------------------------------------------------------------------------
+// Skill types
+// ---------------------------------------------------------------------------
+
+export const SkillManifestSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  version: z.string().regex(/^\d+\.\d+\.\d+/, "Version must be semver"),
+  description: z.string().min(1),
+  author: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  triggers: z.array(z.string()).optional(),
+  provider: z.string().optional(),
+  model: z.string().optional(),
+});
+
+export type SkillManifest = z.infer<typeof SkillManifestSchema>;
+
+export const SkillSourceSchema = z.enum(["bundled", "managed", "workspace"]);
+export type SkillSource = z.infer<typeof SkillSourceSchema>;
+
+export const SkillDefinitionSchema = z.object({
+  manifest: SkillManifestSchema,
+  systemPrompt: z.string(),
+  tools: z.array(z.string()).optional(),
+  maxTurns: z.number().optional(),
+  source: SkillSourceSchema.optional(),
+});
+
+export type SkillDefinition = z.infer<typeof SkillDefinitionSchema>;

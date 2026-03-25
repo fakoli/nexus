@@ -6,6 +6,7 @@ import {
   type MarketplaceRegistry,
   type PluginManifest,
 } from "./types.js";
+import { DEFAULT_REGISTRIES } from "./defaults.js";
 
 const log = createLogger("plugins:marketplace");
 
@@ -13,7 +14,7 @@ const log = createLogger("plugins:marketplace");
 // Constants
 // ---------------------------------------------------------------------------
 
-export const DEFAULT_REGISTRY_URL = "";
+export const DEFAULT_REGISTRY_URL = DEFAULT_REGISTRIES[0] ?? "";
 
 /**
  * Convert a GitHub repository URL into a raw-content base URL pointing at the
@@ -126,7 +127,7 @@ export async function getPluginDetails(
  */
 export async function searchPlugins(
   query: string,
-  registryUrls: string[] = [DEFAULT_REGISTRY_URL],
+  registryUrls: string[] = [...DEFAULT_REGISTRIES],
 ): Promise<MarketplaceEntry[]> {
   const activeUrls = registryUrls.filter((url) => url !== "");
   if (activeUrls.length === 0) {
@@ -165,7 +166,7 @@ export async function searchPlugins(
  * List all plugins across the given registries without filtering.
  */
 export async function listAllPlugins(
-  registryUrls: string[] = [DEFAULT_REGISTRY_URL],
+  registryUrls: string[] = [...DEFAULT_REGISTRIES],
 ): Promise<MarketplaceEntry[]> {
   return searchPlugins("", registryUrls);
 }

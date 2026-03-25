@@ -40,7 +40,19 @@ export type RequestMethod =
   | "plugins.list"
   | "plugins.install"
   | "plugins.uninstall"
-  | "plugins.search";
+  | "plugins.search"
+  | "speech.tts"
+  | "speech.stt"
+  | "speech.voices"
+  // Federation
+  | "federation.peers"
+  | "federation.connect"
+  | "federation.disconnect"
+  | "federation.status"
+  // Skills
+  | "skills.list"
+  | "skills.install"
+  | "skills.search";
 
 export interface RequestFrame {
   id: string;
@@ -68,7 +80,13 @@ export type EventName =
   | "session:created"
   | "config:changed"
   | "agent:delta"
-  | "log";
+  | "log"
+  | "federation:peer:connected"
+  | "federation:peer:disconnected"
+  | "federation:message:received"
+  | "federation:message:forwarded"
+  | "speech:tts"
+  | "speech:stt";
 
 export interface EventFrame {
   event: EventName;
@@ -165,7 +183,7 @@ export interface MarketplaceEntry {
 
 export type ConnectionStatus = "disconnected" | "connecting" | "connected";
 
-export type TabName = "overview" | "chat" | "sessions" | "config" | "agents" | "cron" | "analytics" | "plugins" | "logs" | "debug";
+export type TabName = "overview" | "chat" | "sessions" | "config" | "agents" | "cron" | "analytics" | "plugins" | "logs" | "debug" | "federation" | "skills";
 
 // ── Gateway status types ───────────────────────────────────────────────────────
 
@@ -190,3 +208,43 @@ export interface LogEntry {
 }
 
 export type ThemeName = "dark" | "light";
+
+// ── Federation types ──────────────────────────────────────────────────────────
+
+export interface FederatedPeer {
+  gatewayId: string;
+  gatewayName: string;
+  direction: "inbound" | "outbound";
+  status: "connecting" | "connected" | "disconnected";
+  connectedAt?: number;
+}
+
+// ── Speech types ──────────────────────────────────────────────────────────────
+
+export interface TTSRequest {
+  text: string;
+  voice?: string;
+  speed?: number;
+  format?: "mp3" | "opus" | "wav";
+}
+
+export interface STTRequest {
+  audio: string; // base64
+  language?: string;
+}
+
+export interface VoiceInfo {
+  id: string;
+  name: string;
+  language: string;
+}
+
+// ── Skill types ───────────────────────────────────────────────────────────────
+
+export interface SkillInfo {
+  id: string;
+  name: string;
+  description: string;
+  triggers: string[];
+  source: "bundled" | "managed" | "workspace";
+}

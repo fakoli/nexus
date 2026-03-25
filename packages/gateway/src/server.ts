@@ -34,6 +34,7 @@ import {
   getConfig,
   events,
   createLogger,
+  initLogLevel,
   closeDb,
   ChannelsConfigSchema,
   startCronRunner,
@@ -94,9 +95,39 @@ import {
   handleBootstrapSet,
   handleBootstrapList,
 } from "./handlers/agents.js";
+import {
+  handleSpeechTTS,
+  handleSpeechSTT,
+  handleSpeechVoices,
+} from "./handlers/speech.js";
 
 // ── Plugin system ────────────────────────────────────────────────────
 import { listInstalled, loadPlugin, unloadPlugin } from "@nexus/plugins";
+import {
+  handlePluginsList,
+  handlePluginsInstall,
+  handlePluginsUninstall,
+  handlePluginsSearch,
+} from "./handlers/plugins.js";
+import {
+  handleSkillsList,
+  handleSkillsInstall,
+  handleSkillsSearch,
+} from "./handlers/skills.js";
+
+// ── Federation system ────────────────────────────────────────────────
+import {
+  handleFederationPeers,
+  handleFederationConnect,
+  handleFederationDisconnect,
+  handleFederationStatus,
+} from "./handlers/federation.js";
+import {
+  startFederation,
+  stopFederation,
+  handleFederationConnection,
+} from "./federation/index.js";
+import { FederationConfigSchema } from "./federation/config.js";
 
 const log = createLogger("gateway:server");
 
@@ -155,6 +186,20 @@ const handlers: Record<string, Handler> = {
   "memory.delete": handleMemoryDelete,
   "memory.search": handleMemorySearch,
   "memory.list": handleMemoryList,
+  "speech.tts": handleSpeechTTS,
+  "speech.stt": handleSpeechSTT,
+  "speech.voices": handleSpeechVoices,
+  "plugins.list": handlePluginsList,
+  "plugins.install": handlePluginsInstall,
+  "plugins.uninstall": handlePluginsUninstall,
+  "plugins.search": handlePluginsSearch,
+  "skills.list": handleSkillsList,
+  "skills.install": handleSkillsInstall,
+  "skills.search": handleSkillsSearch,
+  "federation.peers": handleFederationPeers,
+  "federation.connect": handleFederationConnect,
+  "federation.disconnect": handleFederationDisconnect,
+  "federation.status": handleFederationStatus,
 };
 
 log.info({ methods: Object.keys(handlers) }, "RPC handlers registered");
@@ -477,6 +522,12 @@ async function startChannels(): Promise<void> {
 export function startGateway(portOverride?: number): GatewayHandle {
   runMigrations();
 
+  // ── Wire verbose logging from config ──────────────────────────────
+  initLogLevel().catch((err: unknown) => {
+    const msg = err instanceof Error ? err.message : String(err);
+    log.warn({ err: msg }, "Failed to initialise log level from config");
+  });
+
   // ── Start cron runner ───────────────────────────────────────────────
   const cronRunner = startCronRunner();
 
@@ -516,6 +567,31 @@ export function startGateway(portOverride?: number): GatewayHandle {
   });
 
   const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
+
+  // ── Federation WebSocket endpoint ───────────────────────────────────
+  const federationWss = new WebSocketServer({ server: httpServer, path: "/ws/federation" });
+  const fedRaw = getConfig("federation");
+  const fedResult = FederationConfigSchema.safeParse(fedRaw ?? {});
+  const fedConfig = fedResult.success ? fedResult.data : FederationConfigSchema.parse({});
+
+  if (fedConfig.enabled) {
+    startFederation(fedConfig);
+    log.info("Federation enabled and started");
+  }
+
+  federationWss.on("connection", (ws: WebSocket) => {
+    if (!fedConfig.enabled) {
+      ws.close(4403, "Federation not enabled");
+      return;
+    }
+    handleFederationConnection(
+      ws,
+      fedConfig.gatewayId ?? "",
+      fedConfig.gatewayName,
+      fedConfig.token,
+      fedConfig.maxPeers,
+    );
+  });
 
   wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
     // Always use a UUID so that two simultaneous connections from the same IP
@@ -572,6 +648,12 @@ export function startGateway(portOverride?: number): GatewayHandle {
       // Unload plugins before closing DB
       const loadedIds = await pluginLoadPromise;
       await unloadAllPlugins(loadedIds);
+
+      // Stop federation before closing client connections.
+      if (fedConfig.enabled) {
+        stopFederation();
+      }
+      federationWss.close();
 
       for (const client of clients.values()) {
         client.ws.close(1001, "Server shutting down");

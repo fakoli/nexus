@@ -4,8 +4,8 @@ import { createLogger, getDataDir, events } from "@nexus/core";
 import { registerTool } from "@nexus/agent";
 import { readLocalManifest } from "./installer.js";
 import { getPluginDir, isInstalled } from "./registry.js";
-import { isPlugin, isChannelPlugin, isProviderPlugin } from "./sdk.js";
-import type { Plugin, ChannelPlugin, ProviderPlugin } from "./sdk.js";
+import { isPlugin, isChannelPlugin, isProviderPlugin, isSkillPlugin } from "./sdk.js";
+import type { Plugin, ChannelPlugin, ProviderPlugin, SkillPlugin } from "./sdk.js";
 import type { PluginContext } from "./types.js";
 
 const log = createLogger("plugins:loader");
@@ -14,7 +14,7 @@ const log = createLogger("plugins:loader");
 // Loaded plugin registry (in-memory, per-process)
 // ---------------------------------------------------------------------------
 
-type LoadedPlugin = Plugin | ChannelPlugin | ProviderPlugin;
+type LoadedPlugin = Plugin | ChannelPlugin | ProviderPlugin | SkillPlugin;
 
 const loadedPlugins = new Map<string, LoadedPlugin>();
 
@@ -97,11 +97,12 @@ export async function loadPlugin(pluginId: string): Promise<LoadedPlugin> {
   if (
     !isPlugin(defaultExport) &&
     !isChannelPlugin(defaultExport) &&
-    !isProviderPlugin(defaultExport)
+    !isProviderPlugin(defaultExport) &&
+    !isSkillPlugin(defaultExport)
   ) {
     throw new Error(
       `Plugin "${pluginId}" default export must be the result of definePlugin, ` +
-        `defineChannelPlugin, or defineProviderPlugin. Got: ${JSON.stringify(defaultExport)}`,
+        `defineChannelPlugin, defineProviderPlugin, or defineSkillPlugin. Got: ${JSON.stringify(defaultExport)}`,
     );
   }
 

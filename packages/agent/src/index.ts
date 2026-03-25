@@ -9,6 +9,29 @@ export { registerTool, getRegisteredTools, getToolDefinitions, executeTool } fro
 export { registerFilesystemTools } from "./tools/filesystem.js";
 export { registerBashTool } from "./tools/bash.js";
 export { registerWebFetchTool } from "./tools/web-fetch.js";
+export { registerWebSearchTool } from "./tools/web-search.js";
+export { registerMemoryTool } from "./tools/memory.js";
+export { registerTTSTool } from "./tools/tts.js";
+export { registerSTTTool } from "./tools/stt.js";
+export {
+  TTSConfigSchema,
+  STTConfigSchema,
+  SpeechConfigSchema,
+} from "./tools/speech-config.js";
+export type {
+  TTSConfig,
+  STTConfig,
+  SpeechConfig,
+  TTSProvider,
+  TTSParams,
+  TTSResult,
+  STTProvider,
+  STTParams,
+  STTResult,
+  Voice,
+  TranscriptSegment,
+} from "./tools/speech-config.js";
+export { resolveTTSProvider, resolveSTTProvider } from "./tools/speech-providers.js";
 export type {
   Provider,
   ProviderMessage,

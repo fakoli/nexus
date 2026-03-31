@@ -86,10 +86,9 @@ export {
 export {
   uiStore,
   setUiStore,
-  setTab,
-  setTheme,
   setCommandPaletteOpen,
 } from "./ui-store";
+import { setTab as _setTab, setTheme as _setTheme } from "./ui-store";
 
 // ── Monolithic AppStore shape (preserved for backwards-compatibility) ─────────
 
@@ -233,4 +232,14 @@ gateway.onEvent("federation:peer:disconnected", (payload) => {
 
 export function setChatInput(value: string): void {
   setStore("chat", "input", value);
+}
+
+export function setTab(tab: TabName): void {
+  _setTab(tab);
+  setStore("ui", "tab", tab);
+}
+
+export function setTheme(theme: ThemeName): void {
+  _setTheme(theme);
+  setStore("ui", "theme", theme);
 }

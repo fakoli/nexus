@@ -8,6 +8,7 @@ export {
   AgentConfigSchema,
   SecurityConfigSchema,
   ChannelsConfigSchema,
+  ChannelObservationSchema,
   SpeechConfigSchema,
   TTSConfigSchema,
   STTConfigSchema,
@@ -17,7 +18,7 @@ export {
   ClawhubNexusConfigSchema,
   RagConfigSchema,
 } from "./config.js";
-export type { NexusConfig, GatewayConfig, AgentConfig, SecurityConfig, ChannelsConfig, SpeechConfig, TTSConfig, STTConfig, FederationConfig, FederationPeerConfig, PluginsConfig, ClawhubNexusConfig, RagConfig } from "./config.js";
+export type { NexusConfig, GatewayConfig, AgentConfig, SecurityConfig, ChannelsConfig, ChannelObservation, SpeechConfig, TTSConfig, STTConfig, FederationConfig, FederationPeerConfig, PluginsConfig, ClawhubNexusConfig, RagConfig } from "./config.js";
 export { createLogger, setLogLevel, initLogLevel } from "./logger.js";
 export type { Logger } from "./logger.js";
 export { events } from "./events.js";
@@ -129,3 +130,5 @@ export {
   detectMemoryGrowth,
 } from "./diagnostics.js";
 export type { MemoryGrowthOptions } from "./diagnostics.js";
+export { ChannelStream } from "./channels/stream.js";
+export type { ChannelMessage } from "./channels/stream.js";

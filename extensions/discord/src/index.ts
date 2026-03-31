@@ -4,6 +4,7 @@
 export { DiscordAdapter } from "./adapter.js";
 export { DiscordGateway } from "./gateway.js";
 export { DiscordRestClient, DiscordApiError } from "./rest.js";
+export { DiscordChannelStream } from "./stream.js";
 export type {
   DiscordAdapterConfig,
   DiscordMessage,

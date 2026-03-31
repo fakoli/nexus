@@ -118,6 +118,13 @@ import {
   handleSkillsSearch,
 } from "./handlers/skills.js";
 
+// ── Channel stream handlers ──────────────────────────────────────────
+import {
+  handleChannelStreamsList,
+  handleChannelStreamsConfigure,
+  handleChannelStreamsStatus,
+} from "./handlers/channels.js";
+
 // ── Federation system ────────────────────────────────────────────────
 import {
   handleFederationPeers,
@@ -206,6 +213,9 @@ const handlers: Record<string, Handler> = {
   "federation.connect": handleFederationConnect,
   "federation.disconnect": handleFederationDisconnect,
   "federation.status": handleFederationStatus,
+  "channels.streams.list": handleChannelStreamsList,
+  "channels.streams.configure": handleChannelStreamsConfigure,
+  "channels.streams.status": handleChannelStreamsStatus,
 };
 
 log.info({ methods: Object.keys(handlers) }, "RPC handlers registered");

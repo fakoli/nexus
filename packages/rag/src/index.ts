@@ -18,3 +18,7 @@ export type { MemorySearchResult, MemoryIndexOptions } from "./memory-index.js";
 // Message indexer
 export { MessageIndexer } from "./message-indexer.js";
 export type { IndexedMessage, MessageIndexerOptions, MessageIndexerStats } from "./message-indexer.js";
+
+// Stream indexer
+export { StreamIndexer } from "./stream-indexer.js";
+export type { StreamIndexerStats } from "./stream-indexer.js";

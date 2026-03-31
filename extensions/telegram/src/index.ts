@@ -15,6 +15,7 @@ export type { MessageHandler } from "./adapter.js";
 export { escapeMarkdownV2, normaliseMessage } from "./adapter.js";
 
 export { TelegramBot, TelegramBotError } from "./bot.js";
+export { TelegramChannelStream } from "./stream.js";
 
 export type {
   TelegramUser,

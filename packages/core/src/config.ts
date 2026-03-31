@@ -48,14 +48,25 @@ export const SecurityConfigSchema = z.object({
   workspaceRoots: z.array(z.string()).default([]),
 });
 
+export const ChannelObservationSchema = z.object({
+  mode: z.enum(["off", "observe", "active", "mention-only"]).default("off"),
+  autoIndex: z.boolean().default(false),
+  responseFilter: z.string().optional(),
+  cooldownMs: z.number().min(0).default(5000),
+});
+
+export type ChannelObservation = z.infer<typeof ChannelObservationSchema>;
+
 export const ChannelsConfigSchema = z.object({
   telegram: z.object({
     enabled: z.boolean().default(false),
     token: z.string().optional(),
+    observations: z.record(z.string(), ChannelObservationSchema).default({}),
   }).default({}),
   discord: z.object({
     enabled: z.boolean().default(false),
     token: z.string().optional(),
+    observations: z.record(z.string(), ChannelObservationSchema).default({}),
   }).default({}),
 }).default({});
 

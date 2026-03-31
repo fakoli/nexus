@@ -43,6 +43,9 @@
       ],
       "@nexus/sandbox": [
         "./packages/sandbox/src/index.ts"
+      ],
+      "@nexus/container": [
+        "./packages/container/src/index.ts"
       ]
     }
   },
@@ -76,6 +79,9 @@
     },
     {
       "path": "./packages/sandbox"
+    },
+    {
+      "path": "./packages/container"
     }
   ],
   "exclude": [

@@ -17,8 +17,10 @@ export {
   PluginsConfigSchema,
   ClawhubNexusConfigSchema,
   RagConfigSchema,
+  ContainerRegistrySchema,
+  ContainerConfigSchema,
 } from "./config.js";
-export type { NexusConfig, GatewayConfig, AgentConfig, SecurityConfig, ChannelsConfig, ChannelObservation, SpeechConfig, TTSConfig, STTConfig, FederationConfig, FederationPeerConfig, PluginsConfig, ClawhubNexusConfig, RagConfig } from "./config.js";
+export type { NexusConfig, GatewayConfig, AgentConfig, SecurityConfig, ChannelsConfig, ChannelObservation, SpeechConfig, TTSConfig, STTConfig, FederationConfig, FederationPeerConfig, PluginsConfig, ClawhubNexusConfig, RagConfig, ContainerRegistryConfig, ContainerConfig } from "./config.js";
 export { createLogger, setLogLevel, initLogLevel } from "./logger.js";
 export type { Logger } from "./logger.js";
 export { events } from "./events.js";

@@ -13,6 +13,7 @@ import { channelsCommand } from "./commands/channels.js";
 import { chatCommand } from "./commands/chat.js";
 import { quickstartCommand } from "./commands/quickstart.js";
 import { securityCommand } from "./commands/security.js";
+import { containerCommand } from "./commands/container.js";
 
 const pkg = await import("../package.json");
 
@@ -33,5 +34,6 @@ program.addCommand(channelsCommand);
 program.addCommand(chatCommand);
 program.addCommand(quickstartCommand);
 program.addCommand(securityCommand);
+program.addCommand(containerCommand);
 
 program.parseAsync(process.argv);

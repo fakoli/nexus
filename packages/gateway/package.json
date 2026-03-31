@@ -6,6 +6,7 @@
   "main": "src/index.ts",
   "dependencies": {
     "@nexus/core": "*",
+    "@nexus/container": "*",
     "@nexus/agent": "*",
     "@nexus/sandbox": "*",
     "@nexus/channels": "*",

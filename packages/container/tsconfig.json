@@ -1,10 +1,13 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "src",
     "outDir": "dist",
+    "rootDir": "src",
     "composite": true
   },
   "include": ["src/**/*.ts"],
-  "references": [{ "path": "../core" }, { "path": "../gateway" }, { "path": "../plugins" }, { "path": "../container" }]
+  "references": [
+    { "path": "../core" },
+    { "path": "../sandbox" }
+  ]
 }

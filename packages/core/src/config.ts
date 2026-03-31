@@ -109,6 +109,20 @@ export const RagConfigSchema = z.object({
   autoIndex: z.boolean().default(true),
 }).default({});
 
+export const ContainerRegistrySchema = z.object({
+  url: z.string(),
+  username: z.string().optional(),
+  token: z.string().optional(),
+});
+
+export const ContainerConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  registries: z.array(ContainerRegistrySchema).default([]),
+  cachePath: z.string().default(""),
+  defaultMemoryPages: z.number().default(512),
+  defaultTimeoutMs: z.number().default(30000),
+}).default({});
+
 export const NexusConfigSchema = z.object({
   gateway: GatewayConfigSchema.default({}),
   agent: AgentConfigSchema.default({}),
@@ -119,6 +133,7 @@ export const NexusConfigSchema = z.object({
   plugins: PluginsConfigSchema,
   clawhub: ClawhubNexusConfigSchema,
   rag: RagConfigSchema,
+  container: ContainerConfigSchema,
 });
 
 export type NexusConfig = z.infer<typeof NexusConfigSchema>;
@@ -134,6 +149,8 @@ export type FederationPeerConfig = z.infer<typeof FederationPeerConfigSchema>;
 export type PluginsConfig = z.infer<typeof PluginsConfigSchema>;
 export type ClawhubNexusConfig = z.infer<typeof ClawhubNexusConfigSchema>;
 export type RagConfig = z.infer<typeof RagConfigSchema>;
+export type ContainerRegistryConfig = z.infer<typeof ContainerRegistrySchema>;
+export type ContainerConfig = z.infer<typeof ContainerConfigSchema>;
 
 export function getConfig(key: string): unknown {
   const db = getDb();
@@ -174,6 +191,7 @@ export function getAllConfig(): NexusConfig {
     plugins: flat["plugins"] ?? {},
     clawhub: flat["clawhub"] ?? {},
     rag: flat["rag"] ?? {},
+    container: flat["container"] ?? {},
   });
 }
 

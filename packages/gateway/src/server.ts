@@ -124,6 +124,16 @@ import {
   handleSandboxList,
 } from "./handlers/sandbox.js";
 
+// ── Container handlers ───────────────────────────────────────────────
+import {
+  handleContainerRun,
+  handleContainerStop,
+  handleContainerList,
+  handleContainerInspect,
+  handleContainerLogs,
+  handleContainerRemove,
+} from "./handlers/container.js";
+
 // ── Channel stream handlers ──────────────────────────────────────────
 import {
   handleChannelStreamsList,
@@ -224,6 +234,12 @@ const handlers: Record<string, Handler> = {
   "channels.streams.status": handleChannelStreamsStatus,
   "agents.sandbox.status": handleSandboxStatus,
   "agents.sandbox.list": handleSandboxList,
+  "container.run": handleContainerRun,
+  "container.stop": handleContainerStop,
+  "container.list": handleContainerList,
+  "container.inspect": handleContainerInspect,
+  "container.logs": handleContainerLogs,
+  "container.remove": handleContainerRemove,
 };
 
 log.info({ methods: Object.keys(handlers) }, "RPC handlers registered");

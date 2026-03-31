@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 
+import "dotenv/config";
 import { Command } from "commander";
 import { gatewayCommand } from "./commands/gateway.js";
 import { configCommand } from "./commands/config.js";

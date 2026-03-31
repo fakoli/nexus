@@ -18,6 +18,7 @@
  *   4. Client sends RequestFrames; server replies with ResponseFrames.
  *   5. Server may push EventFrames at any time.
  */
+import "dotenv/config";
 import { Hono } from "hono";
 import { WebSocketServer, WebSocket } from "ws";
 import { v4 as uuid } from "uuid";

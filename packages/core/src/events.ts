@@ -14,6 +14,11 @@ export type NexusEvents = {
   "federation:peer:disconnected": { gatewayId: string; reason?: string };
   "federation:message:received": { originGateway: string; sessionId: string };
   "federation:message:forwarded": { targetGateway: string; sessionId: string };
+  "container:started": { containerId: string; image: string };
+  "container:stopped": { containerId: string; exitCode: number | null };
+  "container:failed": { containerId: string; error: string };
+  "container:unhealthy": { containerId: string; consecutiveFailures: number };
+  "container:restarted": { containerId: string; restartCount: number };
 };
 
 export const events = mitt<NexusEvents>();

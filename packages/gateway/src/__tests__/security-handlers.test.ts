@@ -41,8 +41,11 @@ describe("gateway security: config.get redacts sensitive values", () => {
   });
 
   it("gatewayToken is redacted in the security section", async () => {
-    const { handleConfigSet, handleConfigGet } = await import("../handlers/config.js");
-    handleConfigSet({ section: "security", value: { gatewayToken: "super-secret-token" } });
+    // Use setConfig directly (bypassing RPC) to write to security section,
+    // then verify config.get redacts it.
+    const { setConfig } = await import("@nexus/core");
+    const { handleConfigGet } = await import("../handlers/config.js");
+    setConfig("security", { gatewayToken: "super-secret-token" });
     const result = handleConfigGet({ section: "security" });
     expect(result.ok).toBe(true);
     const value = (result.payload as { value: Record<string, unknown> }).value;
@@ -51,8 +54,9 @@ describe("gateway security: config.get redacts sensitive values", () => {
   });
 
   it("gatewayPassword is redacted in the security section", async () => {
-    const { handleConfigSet, handleConfigGet } = await import("../handlers/config.js");
-    handleConfigSet({ section: "security", value: { gatewayPassword: "hunter2" } });
+    const { setConfig } = await import("@nexus/core");
+    const { handleConfigGet } = await import("../handlers/config.js");
+    setConfig("security", { gatewayPassword: "hunter2" });
     const result = handleConfigGet({ section: "security" });
     expect(result.ok).toBe(true);
     const value = (result.payload as { value: Record<string, unknown> }).value;
@@ -60,8 +64,9 @@ describe("gateway security: config.get redacts sensitive values", () => {
   });
 
   it("non-sensitive security fields are NOT redacted", async () => {
-    const { handleConfigSet, handleConfigGet } = await import("../handlers/config.js");
-    handleConfigSet({ section: "security", value: { promptGuard: "enforce" } });
+    const { setConfig } = await import("@nexus/core");
+    const { handleConfigGet } = await import("../handlers/config.js");
+    setConfig("security", { promptGuard: "enforce" });
     const result = handleConfigGet({ section: "security" });
     expect(result.ok).toBe(true);
     const value = (result.payload as { value: Record<string, unknown> }).value;
@@ -69,8 +74,9 @@ describe("gateway security: config.get redacts sensitive values", () => {
   });
 
   it("full config.get also redacts security credentials", async () => {
-    const { handleConfigSet, handleConfigGet } = await import("../handlers/config.js");
-    handleConfigSet({ section: "security", value: { gatewayToken: "leak-me" } });
+    const { setConfig } = await import("@nexus/core");
+    const { handleConfigGet } = await import("../handlers/config.js");
+    setConfig("security", { gatewayToken: "leak-me" });
     const result = handleConfigGet({});
     expect(result.ok).toBe(true);
     const config = (result.payload as { config: Record<string, Record<string, unknown>> }).config;
@@ -95,24 +101,25 @@ describe("gateway security: prompt guard config", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it("config.set accepts enforce for promptGuard", async () => {
+  it("config.set on security section is forbidden via RPC", async () => {
     const { handleConfigSet } = await import("../handlers/config.js");
     const result = handleConfigSet({ section: "security", value: { promptGuard: "enforce" } });
-    expect(result.ok).toBe(true);
+    expect(result.ok).toBe(false);
+    expect(result.error?.code).toBe("FORBIDDEN");
   });
 
-  it("config.set rejects an invalid promptGuard value", async () => {
+  it("config.set with invalid security value also returns FORBIDDEN (not INVALID_CONFIG)", async () => {
     const { handleConfigSet } = await import("../handlers/config.js");
     const result = handleConfigSet({ section: "security", value: { promptGuard: "block" } });
     expect(result.ok).toBe(false);
-    expect(result.error?.code).toBe("INVALID_CONFIG");
+    expect(result.error?.code).toBe("FORBIDDEN");
   });
 
   it("enforcePromptGuard blocks injection when config is enforce", async () => {
-    const { handleConfigSet } = await import("../handlers/config.js");
-    handleConfigSet({ section: "security", value: { promptGuard: "enforce" } });
-    const { getAllConfig } = await import("@nexus/core");
+    const { setConfig, getAllConfig } = await import("@nexus/core");
     const { enforcePromptGuard } = await import("@nexus/core");
+    // Set security config directly (bypassing RPC which is now read-only)
+    setConfig("security", { promptGuard: "enforce" });
     const cfg = getAllConfig();
     expect(cfg.security.promptGuard).toBe("enforce");
     expect(() =>

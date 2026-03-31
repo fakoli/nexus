@@ -1,9 +1,12 @@
+/**
+ * Barrel re-export — keeps the old `../stores/app` import path working while
+ * the actual state lives in focused domain stores.
+ */
 import { createStore } from "solid-js/store";
 import { createGatewayClient } from "../gateway/client";
 import { DEFAULT_GATEWAY_URL } from "../constants";
 import type {
   Agent,
-  ConnectionStatus,
   CronJob,
   CronRunHistory,
   FederatedPeer,
@@ -15,8 +18,79 @@ import type {
   UsageSummary,
   VoiceInfo,
 } from "../gateway/types";
+import type { ConnectionStatus } from "../gateway/types";
 
-// ── Store shape ───────────────────────────────────────────────────────────────
+// ── Re-export domain stores ───────────────────────────────────────────────────
+
+export {
+  connectionStore,
+  setConnectionStore,
+  setConnectionStatus,
+  setConnectionError,
+  setGatewayUrl,
+  setToken,
+} from "./connection-store";
+
+export {
+  sessionStore,
+  setSessionStore,
+  sessionsListStore,
+  setSessionsListStore,
+  appendMessage,
+  updateLastMessage,
+  setCurrentSession,
+} from "./session-store";
+
+export {
+  agentStore,
+  setAgentStore,
+  setAgents,
+  setCurrentAgent,
+} from "./agent-store";
+
+export {
+  configStore,
+  setConfigStore,
+  setConfigSection,
+} from "./config-store";
+
+export {
+  cronStore,
+  setCronStore,
+  setCronJobs,
+  setCronHistory,
+} from "./cron-store";
+
+export {
+  usageStore,
+  setUsageStore,
+  setUsageSummary,
+} from "./usage-store";
+
+export {
+  federationStore,
+  setFederationStore,
+  upsertPeer,
+  setPeerDisconnected,
+  setFederationEnabled,
+} from "./federation-store";
+
+export {
+  speechStore,
+  setSpeechStore,
+  setVoices,
+  setTtsEnabled,
+  setSttEnabled,
+} from "./speech-store";
+
+export {
+  uiStore,
+  setUiStore,
+  setCommandPaletteOpen,
+} from "./ui-store";
+import { setTab as _setTab, setTheme as _setTheme } from "./ui-store";
+
+// ── Monolithic AppStore shape (preserved for backwards-compatibility) ─────────
 
 export interface AppStore {
   connection: {
@@ -68,8 +142,6 @@ export interface AppStore {
   };
 }
 
-// ── Initial state ─────────────────────────────────────────────────────────────
-
 const initialState: AppStore = {
   connection: { status: "disconnected", error: null },
   session: { id: "", agentId: "", messages: [] },
@@ -97,7 +169,6 @@ export const gateway = createGatewayClient(
 
 // ── Wire gateway events into the store ───────────────────────────────────────
 
-// session:created fires when the HelloOk handshake completes
 gateway.onEvent("session:created", (payload) => {
   const p = payload as { id?: string; agentId?: string };
   setStore("connection", "status", "connected");
@@ -106,13 +177,11 @@ gateway.onEvent("session:created", (payload) => {
   if (p.agentId) setStore("session", "agentId", p.agentId);
 });
 
-// session:message pushed by the server
 gateway.onEvent("session:message", (payload) => {
   const msg = payload as unknown as Message;
   setStore("session", "messages", (msgs) => [...msgs, msg]);
 });
 
-// config:changed pushed by the server
 gateway.onEvent("config:changed", (payload) => {
   const p = payload as { key: string; value: unknown };
   if (p.key === "gateway") setStore("config", "gateway", p.value as Record<string, unknown>);
@@ -120,11 +189,9 @@ gateway.onEvent("config:changed", (payload) => {
   else if (p.key === "security") setStore("config", "security", p.value as Record<string, unknown>);
 });
 
-// agent:delta — streaming text chunks from agent.stream
 gateway.onEvent("agent:delta", (payload) => {
   const p = payload as { sessionId?: string; type: string; text?: string };
   if (p.type === "text" && typeof p.text === "string") {
-    // Append text to the last assistant message placeholder
     setStore("session", "messages", (msgs) => {
       if (msgs.length === 0) return msgs;
       const last = msgs[msgs.length - 1];
@@ -137,7 +204,6 @@ gateway.onEvent("agent:delta", (payload) => {
   }
 });
 
-// federation:peer:connected — a peer has connected
 gateway.onEvent("federation:peer:connected", (payload) => {
   const p = payload as { gatewayId: string; gatewayName: string; direction: FederatedPeer["direction"] };
   const peer: FederatedPeer = {
@@ -151,7 +217,6 @@ gateway.onEvent("federation:peer:connected", (payload) => {
   });
 });
 
-// federation:peer:disconnected — a peer has disconnected
 gateway.onEvent("federation:peer:disconnected", (payload) => {
   const p = payload as { gatewayId?: string };
   if (p.gatewayId) {
@@ -163,21 +228,18 @@ gateway.onEvent("federation:peer:disconnected", (payload) => {
   }
 });
 
-// ── Simple tab/theme helpers (no async, exported for convenience) ─────────────
-
-export function setTab(tab: TabName): void {
-  setStore("ui", "tab", tab);
-}
-
-export function setTheme(theme: ThemeName): void {
-  setStore("ui", "theme", theme);
-}
+// ── Simple helpers (exported for convenience) ─────────────────────────────────
 
 export function setChatInput(value: string): void {
   setStore("chat", "input", value);
 }
 
-export function setConnectionError(error: string | null): void {
-  setStore("connection", "error", error);
-  if (error) setStore("connection", "status", "disconnected");
+export function setTab(tab: TabName): void {
+  _setTab(tab);
+  setStore("ui", "tab", tab);
+}
+
+export function setTheme(theme: ThemeName): void {
+  _setTheme(theme);
+  setStore("ui", "theme", theme);
 }

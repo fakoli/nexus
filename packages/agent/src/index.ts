@@ -62,3 +62,5 @@ export {
   executeSlashCommand,
 } from "./commands/index.js";
 export type { SlashCommand, CommandContext, ExecuteResult } from "./commands/index.js";
+export { ChannelResponder } from "./channel-responder.js";
+export type { ChannelResponderStats, ChannelResponderOptions } from "./channel-responder.js";

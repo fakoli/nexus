@@ -8,6 +8,7 @@ export {
   AgentConfigSchema,
   SecurityConfigSchema,
   ChannelsConfigSchema,
+  ChannelObservationSchema,
   SpeechConfigSchema,
   TTSConfigSchema,
   STTConfigSchema,
@@ -15,8 +16,11 @@ export {
   FederationPeerConfigSchema,
   PluginsConfigSchema,
   ClawhubNexusConfigSchema,
+  RagConfigSchema,
+  ContainerRegistrySchema,
+  ContainerConfigSchema,
 } from "./config.js";
-export type { NexusConfig, GatewayConfig, AgentConfig, SecurityConfig, ChannelsConfig, SpeechConfig, TTSConfig, STTConfig, FederationConfig, FederationPeerConfig, PluginsConfig, ClawhubNexusConfig } from "./config.js";
+export type { NexusConfig, GatewayConfig, AgentConfig, SecurityConfig, ChannelsConfig, ChannelObservation, SpeechConfig, TTSConfig, STTConfig, FederationConfig, FederationPeerConfig, PluginsConfig, ClawhubNexusConfig, RagConfig, ContainerRegistryConfig, ContainerConfig } from "./config.js";
 export { createLogger, setLogLevel, initLogLevel } from "./logger.js";
 export type { Logger } from "./logger.js";
 export { events } from "./events.js";
@@ -25,12 +29,23 @@ export {
   encrypt,
   decrypt,
   storeCredential,
+  storeCredentialWithExpiry,
   retrieveCredential,
+  isCredentialExpired,
+  listExpiringCredentials,
   timingSafeEqual,
   initMasterKey,
 } from "./crypto.js";
+export type { ExpiringCredential } from "./crypto.js";
 export { recordAudit, queryAudit } from "./audit.js";
-export { checkRateLimit, resetRateLimit } from "./rate-limit.js";
+export {
+  checkRateLimit,
+  resetRateLimit,
+  getRateLimitStatus,
+  checkRateLimitWithProfile,
+  RateLimitProfileSchema,
+} from "./rate-limit.js";
+export type { RateLimitProfile, RateLimitStatus } from "./rate-limit.js";
 export {
   createSession,
   getSession,
@@ -121,3 +136,12 @@ export {
   countMemory,
 } from "./memory.js";
 export type { MemoryNote } from "./memory.js";
+export { LRUCache } from "./lru-cache.js";
+export {
+  startMemoryMonitor,
+  enableHeapSnapshotOnSignal,
+  detectMemoryGrowth,
+} from "./diagnostics.js";
+export type { MemoryGrowthOptions } from "./diagnostics.js";
+export { ChannelStream } from "./channels/stream.js";
+export type { ChannelMessage } from "./channels/stream.js";

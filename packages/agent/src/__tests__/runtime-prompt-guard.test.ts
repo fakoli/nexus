@@ -17,9 +17,21 @@ async function freshDb(dir: string) {
 
 describe("runtime prompt guard integration", () => {
   let dir: string;
+  const savedEnv: Record<string, string | undefined> = {};
+
+  // Isolate from real API keys so provider resolution fails as the tests expect
+  const API_KEY_VARS = [
+    "ANTHROPIC_API_KEY", "CLAUDE_API_KEY", "OPENAI_API_KEY",
+    "GOOGLE_API_KEY", "GROQ_API_KEY", "DEEPSEEK_API_KEY",
+    "OPENROUTER_API_KEY", "OLLAMA_BASE_URL",
+  ];
 
   beforeEach(async () => {
     dir = makeTmpDir();
+    for (const key of API_KEY_VARS) {
+      savedEnv[key] = process.env[key];
+      delete process.env[key];
+    }
     await freshDb(dir);
   });
 
@@ -27,6 +39,11 @@ describe("runtime prompt guard integration", () => {
     const db = await import("@nexus/core");
     db.closeDb();
     delete process.env.NEXUS_DATA_DIR;
+    for (const key of API_KEY_VARS) {
+      if (savedEnv[key] !== undefined) {
+        process.env[key] = savedEnv[key];
+      }
+    }
     rmSync(dir, { recursive: true, force: true });
   });
 

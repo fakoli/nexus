@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@nexus/core": "*",
+    "@nexus/container": "*",
     "@nexus/gateway": "*",
     "@nexus/plugins": "*",
     "commander": "^13.0.0",

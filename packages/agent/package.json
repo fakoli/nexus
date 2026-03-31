@@ -6,6 +6,8 @@
   "main": "src/index.ts",
   "dependencies": {
     "@nexus/core": "*",
+    "@nexus/rag": "*",
+    "@nexus/sandbox": "*",
     "@anthropic-ai/sdk": "^0.52.0",
     "openai": "^4.80.0"
   }

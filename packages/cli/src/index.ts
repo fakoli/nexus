@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 
+import "dotenv/config";
 import { Command } from "commander";
 import { gatewayCommand } from "./commands/gateway.js";
 import { configCommand } from "./commands/config.js";
@@ -12,6 +13,8 @@ import { doctorCommand } from "./commands/doctor.js";
 import { channelsCommand } from "./commands/channels.js";
 import { chatCommand } from "./commands/chat.js";
 import { quickstartCommand } from "./commands/quickstart.js";
+import { securityCommand } from "./commands/security.js";
+import { containerCommand } from "./commands/container.js";
 
 const pkg = await import("../package.json");
 
@@ -31,5 +34,7 @@ program.addCommand(doctorCommand);
 program.addCommand(channelsCommand);
 program.addCommand(chatCommand);
 program.addCommand(quickstartCommand);
+program.addCommand(securityCommand);
+program.addCommand(containerCommand);
 
 program.parseAsync(process.argv);

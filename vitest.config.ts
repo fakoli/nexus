@@ -28,6 +28,7 @@ export default defineConfig({
       '@nexus/agent': path.resolve(__dirname, 'packages/agent/src/index.ts'),
       '@nexus/telegram': path.resolve(__dirname, 'extensions/telegram/src/index.ts'),
       '@nexus/discord': path.resolve(__dirname, 'extensions/discord/src/index.ts'),
+      '@nexus/rag': path.resolve(__dirname, 'packages/rag/src/index.ts'),
     },
   },
 });

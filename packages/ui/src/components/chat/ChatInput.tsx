@@ -1,6 +1,7 @@
 import { Component, createEffect } from "solid-js";
 import { store, setStore } from "../../stores/app";
 import { sendMessage } from "../../stores/actions";
+import { setFocusMode } from "../../stores/focus-mode";
 
 const ChatInput: Component = () => {
   let textareaRef: HTMLTextAreaElement | undefined;
@@ -8,10 +9,10 @@ const ChatInput: Component = () => {
   const handleSend = () => {
     const text = store.chat.input.trim();
     if (!text || store.chat.sending) return;
-    // Handle /focus command — dispatch event; ChatView listens
+    // Handle /focus command — update signal; ChatView reads it reactively
     if (text === "/focus") {
       setStore("chat", "input", "");
-      window.dispatchEvent(new CustomEvent("nexus:focus-mode"));
+      setFocusMode(true);
       return;
     }
     sendMessage(text);

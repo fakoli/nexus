@@ -72,7 +72,7 @@ export async function runAgent(options: RunOptions): Promise<RunResult> {
   appendMessage(options.sessionId, "user", options.userMessage);
 
   // Build context from session history
-  const context = buildContext({
+  const context = await buildContext({
     sessionId: options.sessionId,
     systemPrompt: options.systemPrompt,
     tools: getToolDefinitions(),

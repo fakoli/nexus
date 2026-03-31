@@ -1,0 +1,73 @@
+/* Nexus design tokens as CSS custom properties.
+   Generated from tokens.ts — keep in sync when updating token values. */
+
+:root {
+  /* ── Colors ────────────────────────────────────────────────────────────── */
+  --color-bg:           #1a1a2e;
+  --color-bg-card:      #252542;
+  --color-bg-hover:     #2e2e50;
+  --color-bg-sidebar:   #13132a;
+  --color-bg-input:     #1a1a2e;
+  --color-bg-overlay:   rgba(10, 10, 20, 0.85);
+
+  --color-text:         #e0e0e0;
+  --color-text-muted:   #a0a0c0;   /* improved contrast over #8888aa */
+  --color-text-dim:     #5a5a7a;
+
+  --color-accent:       #4a9eff;
+  --color-accent-dim:   #2a6eb0;
+
+  --color-success:      #4caf50;
+  --color-warning:      #ffa726;
+  --color-error:        #f44336;
+  --color-info:         #29b6f6;
+
+  --color-border:       #3a3a5c;
+  --color-border-focus: #4a9eff;
+  --color-border-hover: #4a4a6c;
+
+  /* ── Spacing ────────────────────────────────────────────────────────────── */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  32px;
+  --space-xxl: 48px;
+
+  /* ── Typography ─────────────────────────────────────────────────────────── */
+  --font-family:      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:        'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
+
+  --font-size-sm:     11px;
+  --font-size-md:     13px;
+  --font-size-lg:     15px;
+  --font-size-xl:     18px;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold:   600;
+
+  --line-height: 1.5;
+
+  /* ── Shadows ─────────────────────────────────────────────────────────────── */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.5);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,0.6);
+  --shadow-xl:  0 16px 48px rgba(0,0,0,0.7);
+
+  /* ── Border radii ────────────────────────────────────────────────────────── */
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   10px;
+  --radius-xl:   14px;
+  --radius-full: 9999px;
+
+  /* ── Transitions ─────────────────────────────────────────────────────────── */
+  --transition-fast:   0.1s ease;
+  --transition-normal: 0.15s ease;
+  --transition-slow:   0.25s ease;
+
+  /* ── Sidebar dimensions ──────────────────────────────────────────────────── */
+  --sidebar-collapsed: 48px;
+  --sidebar-expanded:  200px;
+}

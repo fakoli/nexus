@@ -13,18 +13,18 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: "overview",  label: "Overview",  icon: "⊞" },
-  { id: "chat",      label: "Chat",      icon: "◎" },
-  { id: "sessions",  label: "Sessions",  icon: "≡", count: () => store.sessions.length || null },
-  { id: "agents",    label: "Agents",    icon: "⬡", count: () => store.agents.length || null },
-  { id: "cron",      label: "Cron",      icon: "◷", count: () => store.cron.jobs.length || null },
-  { id: "plugins",   label: "Plugins",   icon: "⬡" },
-  { id: "config",    label: "Config",    icon: "⚙" },
-  { id: "analytics", label: "Analytics", icon: "↗" },
+  { id: "overview",   label: "Overview",   icon: "⊞" },
+  { id: "chat",       label: "Chat",       icon: "◎" },
+  { id: "sessions",   label: "Sessions",   icon: "≡", count: () => store.sessions.length || null },
+  { id: "agents",     label: "Agents",     icon: "⬡", count: () => store.agents.length || null },
+  { id: "cron",       label: "Cron",       icon: "◷", count: () => store.cron.jobs.length || null },
+  { id: "plugins",    label: "Plugins",    icon: "⬡" },
+  { id: "config",     label: "Config",     icon: "⚙" },
+  { id: "analytics",  label: "Analytics",  icon: "↗" },
   { id: "federation", label: "Federation", icon: "\u{1F310}" },
-  { id: "skills",    label: "Skills",    icon: "\u{26A1}" },
-  { id: "logs",      label: "Logs",      icon: "\u25A4" },
-  { id: "debug",     label: "Debug",     icon: "\u2325" },
+  { id: "skills",     label: "Skills",     icon: "\u{26A1}" },
+  { id: "logs",       label: "Logs",       icon: "\u25A4" },
+  { id: "debug",      label: "Debug",      icon: "\u2325" },
 ];
 
 const Sidebar: Component = () => {
@@ -34,6 +34,9 @@ const Sidebar: Component = () => {
   return (
     <nav
       class={`nx-sidebar${expanded() ? " nx-sidebar--open" : ""}`}
+      aria-label="Main navigation"
+      role="tablist"
+      aria-orientation="vertical"
       style={{
         width: w(), "min-width": w(), "flex-shrink": "0",
         background: t.color.bgSidebar, "border-right": `1px solid ${t.color.border}`,
@@ -56,12 +59,38 @@ const Sidebar: Component = () => {
         <For each={NAV_ITEMS}>
           {(item) => {
             const isActive = () => store.ui.tab === item.id;
-            // Reactive count — evaluated as a function so SolidJS tracks it
             const count = () => item.count ? item.count() : null;
+            const label = () => count() != null ? `${item.label} (${count()})` : item.label;
 
             const btn = (
               <button
+                role="tab"
+                aria-selected={isActive()}
+                aria-label={label()}
+                tabindex={isActive() ? 0 : -1}
                 onClick={() => setTab(item.id)}
+                onKeyDown={(e: KeyboardEvent) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setTab(item.id);
+                  } else if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+                    e.preventDefault();
+                    const idx = NAV_ITEMS.indexOf(item);
+                    const next = NAV_ITEMS[(idx + 1) % NAV_ITEMS.length];
+                    setTab(next.id);
+                    setTimeout(() => {
+                      (e.currentTarget.parentElement?.querySelector("[aria-selected='true']") as HTMLElement | null)?.focus();
+                    }, 0);
+                  } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+                    e.preventDefault();
+                    const idx = NAV_ITEMS.indexOf(item);
+                    const prev = NAV_ITEMS[(idx - 1 + NAV_ITEMS.length) % NAV_ITEMS.length];
+                    setTab(prev.id);
+                    setTimeout(() => {
+                      (e.currentTarget.parentElement?.querySelector("[aria-selected='true']") as HTMLElement | null)?.focus();
+                    }, 0);
+                  }
+                }}
                 title={expanded() ? undefined : item.label}
                 style={{
                   width: "100%", display: "flex", "align-items": "center",
@@ -79,13 +108,13 @@ const Sidebar: Component = () => {
                 <span style={{ "font-size": "15px", "line-height": "1", "flex-shrink": "0", width: "20px", "text-align": "center" }}>{item.icon}</span>
                 {expanded() && (
                   <span style={{ flex: "1", "text-align": "left", overflow: "hidden", "text-overflow": "ellipsis", "white-space": "nowrap" }}>
-                    {count() != null ? `${item.label} (${count()})` : item.label}
+                    {label()}
                   </span>
                 )}
               </button>
             );
 
-            return expanded() ? btn : <Tooltip text={count() != null ? `${item.label} (${count()})` : item.label}>{btn}</Tooltip>;
+            return expanded() ? btn : <Tooltip text={label()}>{btn}</Tooltip>;
           }}
         </For>
       </div>
@@ -94,6 +123,7 @@ const Sidebar: Component = () => {
       <div style={{ padding: `${t.space.sm} ${t.space.xs}`, "border-top": `1px solid ${t.color.border}`, "flex-shrink": "0" }}>
         <button
           onClick={() => setExpanded(v => !v)}
+          aria-label={expanded() ? "Collapse sidebar" : "Expand sidebar"}
           title={expanded() ? "Collapse sidebar" : "Expand sidebar"}
           style={{
             width: "100%", display: "flex", "align-items": "center", "justify-content": expanded() ? "flex-end" : "center",

@@ -6,7 +6,7 @@
  * sessions, and forwards local events to federated peers.
  */
 import { WebSocket } from "ws";
-import { createLogger, events, appendMessage, getOrCreateSession, getOrCreateAgent } from "@nexus/core";
+import { createLogger, events, appendMessage, getOrCreateSession, getOrCreateAgent, timingSafeEqual } from "@nexus/core";
 import {
   FederationHandshakeSchema,
   FederationFrameSchema,
@@ -105,8 +105,8 @@ function processHandshake(
 
   const handshake = result.data;
 
-  // Token validation
-  if (expectedToken && handshake.token !== expectedToken) {
+  // Token validation (timing-safe comparison to prevent timing attacks)
+  if (expectedToken && !timingSafeEqual(handshake.token ?? "", expectedToken)) {
     sendAck(ws, localGatewayId, localGatewayName, false, "Invalid token");
     ws.close(4401, "Invalid token");
     return false;

@@ -48,14 +48,25 @@ export const SecurityConfigSchema = z.object({
   workspaceRoots: z.array(z.string()).default([]),
 });
 
+export const ChannelObservationSchema = z.object({
+  mode: z.enum(["off", "observe", "active", "mention-only"]).default("off"),
+  autoIndex: z.boolean().default(false),
+  responseFilter: z.string().optional(),
+  cooldownMs: z.number().min(0).default(5000),
+});
+
+export type ChannelObservation = z.infer<typeof ChannelObservationSchema>;
+
 export const ChannelsConfigSchema = z.object({
   telegram: z.object({
     enabled: z.boolean().default(false),
     token: z.string().optional(),
+    observations: z.record(z.string(), ChannelObservationSchema).default({}),
   }).default({}),
   discord: z.object({
     enabled: z.boolean().default(false),
     token: z.string().optional(),
+    observations: z.record(z.string(), ChannelObservationSchema).default({}),
   }).default({}),
 }).default({});
 
@@ -89,6 +100,29 @@ export const ClawhubNexusConfigSchema = z.object({
   apiKey: z.string().optional(),
 }).default({});
 
+export const RagConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  embeddingProvider: z.enum(["ollama", "openai"]).default("ollama"),
+  embeddingModel: z.string().default("nomic-embed-text"),
+  topK: z.number().min(1).max(50).default(5),
+  similarityThreshold: z.number().min(0).max(1).default(0.7),
+  autoIndex: z.boolean().default(true),
+}).default({});
+
+export const ContainerRegistrySchema = z.object({
+  url: z.string(),
+  username: z.string().optional(),
+  token: z.string().optional(),
+});
+
+export const ContainerConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  registries: z.array(ContainerRegistrySchema).default([]),
+  cachePath: z.string().default(""),
+  defaultMemoryPages: z.number().default(512),
+  defaultTimeoutMs: z.number().default(30000),
+}).default({});
+
 export const NexusConfigSchema = z.object({
   gateway: GatewayConfigSchema.default({}),
   agent: AgentConfigSchema.default({}),
@@ -98,6 +132,8 @@ export const NexusConfigSchema = z.object({
   federation: FederationConfigSchema.default({}),
   plugins: PluginsConfigSchema,
   clawhub: ClawhubNexusConfigSchema,
+  rag: RagConfigSchema,
+  container: ContainerConfigSchema,
 });
 
 export type NexusConfig = z.infer<typeof NexusConfigSchema>;
@@ -112,6 +148,9 @@ export type FederationConfig = z.infer<typeof FederationConfigSchema>;
 export type FederationPeerConfig = z.infer<typeof FederationPeerConfigSchema>;
 export type PluginsConfig = z.infer<typeof PluginsConfigSchema>;
 export type ClawhubNexusConfig = z.infer<typeof ClawhubNexusConfigSchema>;
+export type RagConfig = z.infer<typeof RagConfigSchema>;
+export type ContainerRegistryConfig = z.infer<typeof ContainerRegistrySchema>;
+export type ContainerConfig = z.infer<typeof ContainerConfigSchema>;
 
 export function getConfig(key: string): unknown {
   const db = getDb();
@@ -151,6 +190,8 @@ export function getAllConfig(): NexusConfig {
     federation: flat["federation"] ?? {},
     plugins: flat["plugins"] ?? {},
     clawhub: flat["clawhub"] ?? {},
+    rag: flat["rag"] ?? {},
+    container: flat["container"] ?? {},
   });
 }
 

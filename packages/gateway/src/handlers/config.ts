@@ -18,6 +18,13 @@ const log = createLogger("gateway:config");
 const VALID_SECTIONS = ["gateway", "agent", "security"] as const;
 
 /**
+ * Config sections that cannot be modified via RPC — only readable.
+ * Prevents authenticated clients from overwriting security credentials
+ * or disabling the prompt guard.
+ */
+const READONLY_SECTIONS = ["security"] as const;
+
+/**
  * Keys within the "security" config section that must never be transmitted
  * over the wire, even to authenticated clients.  Credentials stay server-side.
  */
@@ -107,6 +114,16 @@ export function handleConfigSet(params: Record<string, unknown>): ResponseFrame 
 
   const { section, value } = parsed.data;
 
+  // Block writes to read-only sections (e.g. "security") to prevent
+  // authenticated clients from overwriting tokens or disabling prompt guard.
+  if ((READONLY_SECTIONS as readonly string[]).includes(section)) {
+    return {
+      id: "",
+      ok: false,
+      error: { code: "FORBIDDEN", message: `Section "${section}" cannot be modified via RPC` },
+    };
+  }
+
   // Validate the value against the appropriate sub-schema.
   const sectionSchema = NexusConfigSchema.shape[section];
   const validated = sectionSchema.safeParse(value);
@@ -124,6 +141,6 @@ export function handleConfigSet(params: Record<string, unknown>): ResponseFrame 
   return {
     id: "",
     ok: true,
-    payload: { section, value: validated.data },
+    payload: { section, value: redactSection(section, validated.data) },
   };
 }

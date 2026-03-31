@@ -37,6 +37,15 @@
       ],
       "@nexus/discord": [
         "./extensions/discord/src/index.ts"
+      ],
+      "@nexus/rag": [
+        "./packages/rag/src/index.ts"
+      ],
+      "@nexus/sandbox": [
+        "./packages/sandbox/src/index.ts"
+      ],
+      "@nexus/container": [
+        "./packages/container/src/index.ts"
       ]
     }
   },
@@ -64,6 +73,15 @@
     },
     {
       "path": "./extensions/discord"
+    },
+    {
+      "path": "./packages/rag"
+    },
+    {
+      "path": "./packages/sandbox"
+    },
+    {
+      "path": "./packages/container"
     }
   ],
   "exclude": [

@@ -44,6 +44,10 @@ export async function executeTool(
     const policy = checkToolPolicy(agentId, call.name);
     if (!policy.allowed) {
       log.warn({ tool: call.name, agentId, reason: policy.reason }, "Tool blocked by policy");
+      recordAudit("security:tool_policy_violation", agentId, {
+        tool: call.name,
+        reason: policy.reason,
+      });
       return JSON.stringify({
         error: `Tool "${call.name}" blocked by policy: ${policy.reason}`,
       });

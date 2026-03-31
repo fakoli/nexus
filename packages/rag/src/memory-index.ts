@@ -15,6 +15,8 @@ const log = createLogger("rag:memory-index");
 
 const MEMORY_TABLE = "memory_vectors";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export interface MemorySearchResult {
   note: MemoryNote;
   score?: number; // similarity score, only present for vector search
@@ -134,6 +136,10 @@ export class MemoryIndex {
   }
 
   async deleteMemory(id: string): Promise<boolean> {
+    if (!UUID_RE.test(id)) {
+      log.warn({ id }, "Invalid memory id format, refusing delete");
+      return false;
+    }
     const deleted = deleteMemory(id);
     if (deleted && this.vectorStore) {
       try {

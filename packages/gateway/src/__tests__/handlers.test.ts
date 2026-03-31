@@ -331,13 +331,14 @@ describe('handlers: handleConfigSet', () => {
     expect(payload.value.port).toBe(9999);
   });
 
-  it('sets a security config section', async () => {
+  it('rejects writes to the security config section via RPC (FORBIDDEN)', async () => {
     const { handleConfigSet } = await import('../handlers/config.js');
     const result = handleConfigSet({
       section: 'security',
       value: { gatewayToken: 'new-tok' },
     });
-    expect(result.ok).toBe(true);
+    expect(result.ok).toBe(false);
+    expect(result.error?.code).toBe('FORBIDDEN');
   });
 
   it('returns INVALID_PARAMS for missing section', async () => {

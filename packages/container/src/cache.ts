@@ -54,6 +54,9 @@ export class DiskBlobCache implements BlobCache {
   private blobPath(digest: string): string {
     // digest format: "sha256:<hex>" — use just the hex part as filename
     const hash = digest.replace(/^[^:]+:/, "");
+    if (!/^[0-9a-f]+$/.test(hash)) {
+      throw new Error(`Invalid digest hash: ${hash}`);
+    }
     return path.join(this.blobDir, hash);
   }
 

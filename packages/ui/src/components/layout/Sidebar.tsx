@@ -67,12 +67,28 @@ const Sidebar: Component = () => {
                 role="tab"
                 aria-selected={isActive()}
                 aria-label={label()}
-                tabindex={0}
+                tabindex={isActive() ? 0 : -1}
                 onClick={() => setTab(item.id)}
                 onKeyDown={(e: KeyboardEvent) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     setTab(item.id);
+                  } else if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+                    e.preventDefault();
+                    const idx = NAV_ITEMS.indexOf(item);
+                    const next = NAV_ITEMS[(idx + 1) % NAV_ITEMS.length];
+                    setTab(next.id);
+                    setTimeout(() => {
+                      (e.currentTarget.parentElement?.querySelector("[aria-selected='true']") as HTMLElement | null)?.focus();
+                    }, 0);
+                  } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+                    e.preventDefault();
+                    const idx = NAV_ITEMS.indexOf(item);
+                    const prev = NAV_ITEMS[(idx - 1 + NAV_ITEMS.length) % NAV_ITEMS.length];
+                    setTab(prev.id);
+                    setTimeout(() => {
+                      (e.currentTarget.parentElement?.querySelector("[aria-selected='true']") as HTMLElement | null)?.focus();
+                    }, 0);
                   }
                 }}
                 title={expanded() ? undefined : item.label}

@@ -18,6 +18,9 @@ const log = createLogger("container:oci-auth");
 /** Allowlist regex for docker credential helper names. */
 const HELPER_NAME_RE = /^[a-zA-Z0-9_-]+$/;
 
+/** Hostnames that are always blocked regardless of IP form. */
+const BLOCKED_HOSTNAMES = ["localhost", "0.0.0.0", "[::1]"];
+
 /** Private/loopback IPv4 CIDR ranges that are always blocked for SSRF protection. */
 const BLOCKED_IPV4_PREFIXES = [
   "127.",
@@ -34,7 +37,7 @@ const BLOCKED_IPV4_RANGES: Array<[string, number, number]> = [
 ];
 
 /** Blocked IPv6 addresses / prefixes (after lowercasing). */
-const BLOCKED_IPV6_PREFIXES = ["::1", "fc", "fd"];
+const BLOCKED_IPV6_PREFIXES = ["::1", "fc", "fd", "fe80"];
 
 /**
  * Returns true if the hostname resolves to a private/internal address.
@@ -42,6 +45,9 @@ const BLOCKED_IPV6_PREFIXES = ["::1", "fc", "fd"];
  */
 export function isBlockedHostname(hostname: string): boolean {
   const h = hostname.toLowerCase().split(":")[0]; // strip port
+
+  // Exact hostname matches (localhost, 0.0.0.0, [::1])
+  if (BLOCKED_HOSTNAMES.includes(h)) return true;
 
   // IPv6 literal (wrapped in brackets is already stripped by URL)
   if (h.startsWith("[") || h.includes(":")) {
@@ -194,6 +200,9 @@ export async function fetchToken(
   const realm = realmMatch[1];
   const service = serviceMatch ? serviceMatch[1] : registry;
   const tokenUrl = new URL(realm);
+  if (isBlockedHostname(tokenUrl.hostname)) {
+    throw new OciAuthError(`Token realm '${realm}' resolves to a blocked address`);
+  }
   tokenUrl.searchParams.set("service", service);
   tokenUrl.searchParams.set("scope", `repository:${repository}:${scope}`);
 

@@ -106,8 +106,9 @@ async function fetchSemanticContext(
 
   let results: Array<{ content: string; metadata: Record<string, unknown>; distance: number }>;
   try {
-    const table = await vectorStore.getOrCreateTable(MESSAGE_TABLE);
-    results = await table.search(embedding, { limit: topK });
+    const table = await vectorStore.getOrCreateTable(MESSAGE_TABLE, embeddingProvider.dimensions);
+    // Use cosine distance so the score formula (1 - distance) is correct: cosine distance is in [0, 1]
+    results = await table.search(embedding, { limit: topK, distanceType: "cosine" });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     log.warn({ err: msg }, "RAG vector search failed; skipping semantic context");
@@ -119,6 +120,7 @@ async function fetchSemanticContext(
 
   const retrieved: RetrievedMessage[] = [];
   for (const result of results) {
+    // cosine distance is in [0, 1], so score = 1 - distance gives similarity in [0, 1]
     const score = Math.max(0, 1 - result.distance);
     if (score < similarityThreshold) continue;
     if (existingContents.has(result.content)) continue;

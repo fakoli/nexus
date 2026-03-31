@@ -48,6 +48,7 @@ export class MessageIndexer {
   private flushTimer: ReturnType<typeof setInterval> | undefined;
   private _stats: MessageIndexerStats = { queued: 0, indexed: 0, errors: 0 };
   private _flushing = false;
+  private _flushPromise: Promise<void> | null = null;
 
   // Event handler reference for cleanup
   private readonly _onSessionMessage: (e: { sessionId: string; role: string; content: string }) => void;
@@ -111,9 +112,24 @@ export class MessageIndexer {
 
   /** Force-flush the current buffer to LanceDB. */
   async flush(): Promise<void> {
-    if (this._flushing || this.buffer.length === 0) return;
-    this._flushing = true;
+    if (this._flushing) {
+      // Wait for the in-flight flush to complete before returning
+      if (this._flushPromise) await this._flushPromise;
+      return;
+    }
+    if (this.buffer.length === 0) return;
 
+    this._flushing = true;
+    this._flushPromise = this._doFlush();
+    try {
+      await this._flushPromise;
+    } finally {
+      this._flushing = false;
+      this._flushPromise = null;
+    }
+  }
+
+  private async _doFlush(): Promise<void> {
     const batch = this.buffer.splice(0, this.batchSize);
     log.info({ batchSize: batch.length }, "Flushing message batch");
 
@@ -121,7 +137,7 @@ export class MessageIndexer {
       const texts = batch.map((m) => m.content);
       const embeddings = await this.embeddingProvider.embed(texts);
 
-      const table = await this.vectorStore.getOrCreateTable(MESSAGE_TABLE);
+      const table = await this.vectorStore.getOrCreateTable(MESSAGE_TABLE, this.embeddingProvider.dimensions);
       await table.upsert(
         batch.map((msg, i) => ({
           id: msg.id,
@@ -142,8 +158,6 @@ export class MessageIndexer {
       const msg = err instanceof Error ? err.message : String(err);
       log.error({ err: msg, batchSize: batch.length }, "Failed to index batch; messages dropped");
       this._stats.errors += batch.length;
-    } finally {
-      this._flushing = false;
     }
   }
 
@@ -154,8 +168,12 @@ export class MessageIndexer {
       clearInterval(this.flushTimer);
       this.flushTimer = undefined;
     }
-    // Flush whatever remains
-    while (this.buffer.length > 0) {
+    // Wait for any in-flight flush to complete
+    if (this._flushing && this._flushPromise) {
+      await this._flushPromise;
+    }
+    // Then flush remaining buffered messages
+    if (this.buffer.length > 0) {
       await this.flush();
     }
     log.info({ stats: this._stats }, "MessageIndexer stopped");

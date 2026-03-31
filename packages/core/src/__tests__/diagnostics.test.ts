@@ -136,9 +136,7 @@ describe("diagnostics", () => {
         };
       });
 
-      const warnSpy = vi.fn();
-      // We can't easily spy on the logger, but we can verify the function
-      // runs without throwing when growth is detected.
+      // Verify the function runs without throwing when growth is detected.
       const stop = detectMemoryGrowth({
         thresholdPercent: 50,
         windowMs: 60_000,
@@ -150,7 +148,7 @@ describe("diagnostics", () => {
       vi.advanceTimersByTime(6_000);
 
       stop();
-      expect(warnSpy).not.toThrow(); // structural check — no crash
+      expect(typeof stop).toBe("function"); // detectMemoryGrowth completed without error
     });
 
     it("stops sampling after stop() is called", async () => {

@@ -8,6 +8,7 @@ import {
   resolveAuth, resolveCredentialForRegistry,
 } from "./oci-auth.js";
 import type { TokenCacheEntry } from "./oci-auth.js";
+import { safeFetch } from "./safe-fetch.js";
 import { OciManifestSchema, OciImageIndexSchema, ParsedImageRefSchema, MEDIA_TYPES } from "./oci-types.js";
 import type { OciDescriptor, OciManifest, ParsedImageRef } from "./oci-types.js";
 import { MemoryBlobCache } from "./cache.js";
@@ -131,7 +132,7 @@ export class OciClient {
     this.checkRegistry(registry);
     const auth = await this.authHeaders(registry, repository);
     const accept = [MEDIA_TYPES.OCI_MANIFEST, MEDIA_TYPES.OCI_INDEX, MEDIA_TYPES.DOCKER_MANIFEST_V2, MEDIA_TYPES.DOCKER_MANIFEST_LIST].join(", ");
-    const res = await fetch(`https://${registry}/v2/${repository}/manifests/${reference}`, { headers: { ...auth, Accept: accept }, redirect: "follow" });
+    const res = await safeFetch(`https://${registry}/v2/${repository}/manifests/${reference}`, { headers: { ...auth, Accept: accept } });
     if (res.status === 401) throw new OciAuthError(`Unauthorized pulling manifest ${ref.original}`);
     if (res.status === 404) throw new OciManifestNotFoundError(`Manifest not found: ${ref.original}`);
     if (!res.ok) throw new Error(`Manifest fetch failed (${res.status}): ${ref.original}`);
@@ -157,7 +158,7 @@ export class OciClient {
     const cached = await this.cache.get(digest);
     if (cached) return cached;
     const auth = await this.authHeaders(registry, repository);
-    const res = await fetch(`https://${registry}/v2/${repository}/blobs/${digest}`, { headers: auth, redirect: "follow" });
+    const res = await safeFetch(`https://${registry}/v2/${repository}/blobs/${digest}`, { headers: auth });
     if (res.status === 401) throw new OciAuthError(`Unauthorized pulling blob ${digest}`);
     if (res.status === 404) throw new OciBlobNotFoundError(`Blob not found: ${digest}`);
     if (!res.ok) throw new Error(`Blob fetch failed (${res.status}): ${digest}`);
@@ -212,7 +213,7 @@ export class OciClient {
     const tags: string[] = [];
     let nextUrl: string | null = `https://${registry}/v2/${repository}/tags/list`;
     while (nextUrl) {
-      const res: Response = await fetch(nextUrl, { headers: auth });
+      const res: Response = await safeFetch(nextUrl, { headers: auth });
       if (!res.ok) throw new Error(`Tag list failed (${res.status})`);
       const body = await res.json() as { tags?: string[] };
       tags.push(...(body.tags ?? []));

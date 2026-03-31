@@ -225,7 +225,12 @@ export class LifecycleManager {
     events.emit("container:failed", { containerId, error: errMsg });
 
     if (policy.mode === "never") return;
-    if (policy.mode === "on-failure" && state.exitCode === 0) return;
+    if (policy.mode === "on-failure") {
+      // Don't restart if the container exited cleanly (code 0)
+      if (state.exitCode === 0) return;
+      // Don't restart if failure was from a health check (not a process crash)
+      if (state.exitCode === null && state.error?.includes("health check")) return;
+    }
 
     const attempts = this.restartAttempts.get(containerId) ?? 0;
     if (policy.mode === "on-failure" && attempts >= policy.maxRetries) {

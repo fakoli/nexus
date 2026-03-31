@@ -137,7 +137,7 @@ export class VectorStore {
     return new VectorStore(conn);
   }
 
-  async getOrCreateTable(name: string): Promise<VectorTable> {
+  async getOrCreateTable(name: string, dimensions = 768): Promise<VectorTable> {
     const existingNames = await this.conn.tableNames();
 
     if (existingNames.includes(name)) {
@@ -146,12 +146,12 @@ export class VectorStore {
       return VectorTable._fromRaw(raw);
     }
 
-    log.info({ table: name }, "Creating new table");
+    log.info({ table: name, dimensions }, "Creating new table");
     // Seed with one placeholder row so LanceDB can infer the schema,
     // then immediately delete it.
     const placeholder: LanceRow = {
       id: "__placeholder__",
-      vector: [0],
+      vector: Array(dimensions).fill(0),
       content: "",
       metadata: "{}",
     };

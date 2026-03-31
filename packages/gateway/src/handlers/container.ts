@@ -1,8 +1,9 @@
 /**
  * Container RPC handlers — OCI/Wasm container management.
  */
+import path from "node:path";
 import { z } from "zod";
-import { createLogger } from "@nexus/core";
+import { createLogger, getAllConfig } from "@nexus/core";
 import { LifecycleManager, ContainerConfigSchema, parseImageRef } from "@nexus/container";
 import type { ContainerConfig } from "@nexus/container";
 import type { ResponseFrame } from "../protocol/frames.js";
@@ -89,6 +90,22 @@ export async function handleContainerRun(params: Record<string, unknown>): Promi
   const configResult = ContainerConfigSchema.safeParse(parsed.data);
   if (!configResult.success) {
     return { id: "", ok: false, error: { code: "INVALID_CONFIG", message: configResult.error.message } };
+  }
+
+  // Validate volume hostPaths against configured workspace roots
+  if (parsed.data.volumes && parsed.data.volumes.length > 0) {
+    const roots = getAllConfig().security.workspaceRoots;
+    if (roots.length > 0) {
+      for (const vol of parsed.data.volumes) {
+        const resolved = path.resolve(vol.hostPath);
+        if (!roots.some((r) => resolved.startsWith(path.resolve(r)))) {
+          return {
+            id: "", ok: false,
+            error: { code: "FORBIDDEN", message: `Volume hostPath '${vol.hostPath}' is outside configured workspace roots` },
+          };
+        }
+      }
+    }
   }
 
   try {

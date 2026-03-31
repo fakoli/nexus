@@ -53,7 +53,7 @@ export class MemoryIndex {
     if (this.embeddingProvider && this.vectorStore) {
       try {
         const [embedding] = await this.embeddingProvider.embed([content]);
-        const table = await this.vectorStore.getOrCreateTable(MEMORY_TABLE);
+        const table = await this.vectorStore.getOrCreateTable(MEMORY_TABLE, this.embeddingProvider?.dimensions);
         await table.upsert([
           {
             id: note.id,
@@ -112,7 +112,7 @@ export class MemoryIndex {
     if (updates.content && this.embeddingProvider && this.vectorStore) {
       try {
         const [embedding] = await this.embeddingProvider.embed([updates.content]);
-        const table = await this.vectorStore.getOrCreateTable(MEMORY_TABLE);
+        const table = await this.vectorStore.getOrCreateTable(MEMORY_TABLE, this.embeddingProvider?.dimensions);
         await table.upsert([
           {
             id: note.id,
@@ -143,7 +143,7 @@ export class MemoryIndex {
     const deleted = deleteMemory(id);
     if (deleted && this.vectorStore) {
       try {
-        const table = await this.vectorStore.getOrCreateTable(MEMORY_TABLE);
+        const table = await this.vectorStore.getOrCreateTable(MEMORY_TABLE, this.embeddingProvider?.dimensions);
         await table.delete(`id = '${id}'`);
         log.info({ id }, "Memory vector deleted");
       } catch (err: unknown) {
@@ -179,8 +179,9 @@ export class MemoryIndex {
     }
 
     try {
-      const table = await this.vectorStore!.getOrCreateTable(MEMORY_TABLE);
-      const searchOptions = { limit };
+      const table = await this.vectorStore!.getOrCreateTable(MEMORY_TABLE, this.embeddingProvider?.dimensions);
+      // Use cosine distance so score formula (1 - distance) gives similarity in [0, 1]
+      const searchOptions = { limit, distanceType: "cosine" as const };
       const results = await table.search(embedding, searchOptions);
 
       const searchResults: MemorySearchResult[] = [];

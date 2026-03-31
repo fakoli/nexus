@@ -227,6 +227,7 @@ export class WasmContainer {
     }
     return {
       containerId: this.id,
+      // NOTE: reports configured max, not actual usage — Extism does not expose runtime memory metrics
       memoryUsageBytes: this.config.memoryLimitPages * 65536,
       callCount: this.callCount,
       uptimeMs: Date.now() - this.startedAtMs,

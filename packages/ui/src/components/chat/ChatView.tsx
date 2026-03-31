@@ -1,6 +1,5 @@
 import { type Component, onMount } from "solid-js";
 import { loadHistory } from "../../stores/actions";
-import { setChatInput } from "../../stores/app";
 import { focusMode, setFocusMode } from "../../stores/focus-mode";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
@@ -13,16 +12,6 @@ const ChatView: Component = () => {
   onMount(() => {
     loadHistory();
   });
-
-  // Handle /focus command typed into the input
-  const handleFocusCommand = (text: string) => {
-    if (text.trim() === "/focus") {
-      setChatInput("");
-      setFocusMode(true);
-    }
-  };
-
-  void handleFocusCommand; // available for ChatInput wiring
 
   const chatContent = (
     <div style={{

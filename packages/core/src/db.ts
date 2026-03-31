@@ -213,5 +213,16 @@ function getMigrations(): Migration[] {
         `);
       },
     },
+    {
+      version: 4,
+      name: "credential-expiry",
+      up: (db) => {
+        db.exec(`
+          ALTER TABLE credentials ADD COLUMN expires_at INTEGER;
+          CREATE INDEX IF NOT EXISTS idx_credentials_expires ON credentials(expires_at)
+            WHERE expires_at IS NOT NULL;
+        `);
+      },
+    },
   ];
 }

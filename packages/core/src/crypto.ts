@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { getDb, getDataDir } from "./db.js";
 import { createLogger } from "./logger.js";
+import { events } from "./events.js";
 
 const log = createLogger("core:crypto");
 
@@ -96,12 +97,64 @@ export function storeCredential(id: string, provider: string, value: string): vo
   log.info({ id, provider }, "Credential stored");
 }
 
+export function storeCredentialWithExpiry(
+  id: string,
+  provider: string,
+  value: string,
+  expiresAt?: number,
+): void {
+  const { encrypted, iv, tag } = encrypt(value);
+  const db = getDb();
+  db.prepare(
+    `INSERT INTO credentials (id, provider, encrypted_value, iv, tag, expires_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, unixepoch())
+     ON CONFLICT(id) DO UPDATE SET
+       provider = excluded.provider,
+       encrypted_value = excluded.encrypted_value,
+       iv = excluded.iv,
+       tag = excluded.tag,
+       expires_at = excluded.expires_at,
+       updated_at = excluded.updated_at`,
+  ).run(id, provider, encrypted, iv, tag, expiresAt ?? null);
+  log.info({ id, provider, expiresAt }, "Credential stored with expiry");
+  events.emit("audit:entry", { eventType: "credential:stored", actor: id });
+}
+
+export function isCredentialExpired(id: string): boolean {
+  const db = getDb();
+  const row = db
+    .prepare("SELECT expires_at FROM credentials WHERE id = ?")
+    .get(id) as { expires_at: number | null } | undefined;
+  if (!row) return true; // not found — treat as expired/invalid
+  if (row.expires_at === null) return false; // no expiry set
+  return Math.floor(Date.now() / 1000) >= row.expires_at;
+}
+
+export interface ExpiringCredential {
+  id: string;
+  provider: string;
+  expiresAt: number;
+}
+
+export function listExpiringCredentials(withinMs: number): ExpiringCredential[] {
+  const db = getDb();
+  const nowSec = Math.floor(Date.now() / 1000);
+  const thresholdSec = nowSec + Math.floor(withinMs / 1000);
+  const rows = db
+    .prepare(
+      "SELECT id, provider, expires_at FROM credentials WHERE expires_at IS NOT NULL AND expires_at <= ?",
+    )
+    .all(thresholdSec) as Array<{ id: string; provider: string; expires_at: number }>;
+  return rows.map((r) => ({ id: r.id, provider: r.provider, expiresAt: r.expires_at }));
+}
+
 export function retrieveCredential(id: string): string | null {
   const db = getDb();
   const row = db
     .prepare("SELECT encrypted_value, iv, tag FROM credentials WHERE id = ?")
     .get(id) as { encrypted_value: Buffer; iv: Buffer; tag: Buffer } | undefined;
   if (!row) return null;
+  events.emit("audit:entry", { eventType: "credential:accessed", actor: id });
   return decrypt(row.encrypted_value, row.iv, row.tag);
 }
 

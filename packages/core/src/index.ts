@@ -27,12 +27,23 @@ export {
   encrypt,
   decrypt,
   storeCredential,
+  storeCredentialWithExpiry,
   retrieveCredential,
+  isCredentialExpired,
+  listExpiringCredentials,
   timingSafeEqual,
   initMasterKey,
 } from "./crypto.js";
+export type { ExpiringCredential } from "./crypto.js";
 export { recordAudit, queryAudit } from "./audit.js";
-export { checkRateLimit, resetRateLimit } from "./rate-limit.js";
+export {
+  checkRateLimit,
+  resetRateLimit,
+  getRateLimitStatus,
+  checkRateLimitWithProfile,
+  RateLimitProfileSchema,
+} from "./rate-limit.js";
+export type { RateLimitProfile, RateLimitStatus } from "./rate-limit.js";
 export {
   createSession,
   getSession,

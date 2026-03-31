@@ -12,6 +12,7 @@ import { doctorCommand } from "./commands/doctor.js";
 import { channelsCommand } from "./commands/channels.js";
 import { chatCommand } from "./commands/chat.js";
 import { quickstartCommand } from "./commands/quickstart.js";
+import { securityCommand } from "./commands/security.js";
 
 const pkg = await import("../package.json");
 
@@ -31,5 +32,6 @@ program.addCommand(doctorCommand);
 program.addCommand(channelsCommand);
 program.addCommand(chatCommand);
 program.addCommand(quickstartCommand);
+program.addCommand(securityCommand);
 
 program.parseAsync(process.argv);

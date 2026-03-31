@@ -38,6 +38,8 @@ import {
   closeDb,
   ChannelsConfigSchema,
   startCronRunner,
+  startMemoryMonitor,
+  enableHeapSnapshotOnSignal,
 } from "@nexus/core";
 
 import {
@@ -143,6 +145,8 @@ interface ClientState {
   sessionId: string;
   agentId: string;
   authed: boolean;
+  /** Unix timestamp (ms) of the last received pong from this client. */
+  lastPong: number;
 }
 
 const clients = new Map<string, ClientState>();
@@ -221,16 +225,30 @@ setBroadcast(broadcast);
 
 // ── Core-event forwarding ───────────────────────────────────────────
 
-function setupEventForwarding(): void {
-  events.on("session:created", (e) =>
-    broadcast("session:created", e as unknown as Record<string, unknown>),
-  );
-  events.on("session:message", (e) =>
-    broadcast("session:message", e as unknown as Record<string, unknown>),
-  );
-  events.on("config:changed", (e) =>
-    broadcast("config:changed", { key: e.key, value: e.value as unknown }),
-  );
+/**
+ * Register core-event listeners that forward events to all authed WS clients.
+ * Returns an array of unsubscribe functions; call them all in close() to
+ * prevent listener leaks across gateway restarts.
+ */
+function setupEventForwarding(): Array<() => void> {
+  const onSessionCreated = (e: { sessionId: string; agentId: string }) =>
+    broadcast("session:created", e as unknown as Record<string, unknown>);
+
+  const onSessionMessage = (e: { sessionId: string; role: string; content: string }) =>
+    broadcast("session:message", e as unknown as Record<string, unknown>);
+
+  const onConfigChanged = (e: { key: string; value: unknown }) =>
+    broadcast("config:changed", { key: e.key, value: e.value as unknown });
+
+  events.on("session:created", onSessionCreated);
+  events.on("session:message", onSessionMessage);
+  events.on("config:changed", onConfigChanged);
+
+  return [
+    () => events.off("session:created", onSessionCreated),
+    () => events.off("session:message", onSessionMessage),
+    () => events.off("config:changed", onConfigChanged),
+  ];
 }
 
 // ── Header normalisation ─────────────────────────────────────────────
@@ -551,7 +569,11 @@ export function startGateway(portOverride?: number): GatewayHandle {
   const host = bindSetting === "loopback" ? "127.0.0.1" : "0.0.0.0";
 
   const app = createApp();
-  setupEventForwarding();
+  const eventUnsubs = setupEventForwarding();
+
+  // ── Diagnostics ─────────────────────────────────────────────────────
+  const stopMemoryMonitor = startMemoryMonitor();
+  const stopHeapSnapshot = enableHeapSnapshotOnSignal();
 
   // Create a raw Node HTTP server so we can handle both Hono and WS.
   const httpServer = createServer(async (req, res) => {
@@ -593,6 +615,30 @@ export function startGateway(portOverride?: number): GatewayHandle {
     );
   });
 
+  // ── Heartbeat: ping every 30 s ──────────────────────────────────────
+  const PING_INTERVAL_MS = 30_000;
+  const heartbeatInterval = setInterval(() => {
+    for (const client of clients.values()) {
+      if (client.ws.readyState === WebSocket.OPEN) {
+        client.ws.ping();
+      }
+    }
+  }, PING_INTERVAL_MS);
+
+  // ── Stale-client sweep: terminate clients silent for > 90 s ─────────
+  const STALE_THRESHOLD_MS = 90_000;
+  const SWEEP_INTERVAL_MS = 60_000;
+  const sweepInterval = setInterval(() => {
+    const now = Date.now();
+    for (const [clientId, client] of clients) {
+      if (now - client.lastPong > STALE_THRESHOLD_MS) {
+        log.warn({ clientId }, "Terminating stale WS client (no pong)");
+        client.ws.terminate();
+        clients.delete(clientId);
+      }
+    }
+  }, SWEEP_INTERVAL_MS);
+
   wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
     // Always use a UUID so that two simultaneous connections from the same IP
     // get distinct map entries (using remoteAddress caused the second connection
@@ -605,9 +651,14 @@ export function startGateway(portOverride?: number): GatewayHandle {
       sessionId: "",
       agentId: "",
       authed: false,
+      lastPong: Date.now(),
     };
     clients.set(clientId, client);
     log.info({ clientId, remoteAddr }, "WS connected");
+
+    ws.on("pong", () => {
+      client.lastPong = Date.now();
+    });
 
     ws.on("message", (data) => {
       // handleWsMessage is async; attach a .catch() so that any unhandled
@@ -638,6 +689,19 @@ export function startGateway(portOverride?: number): GatewayHandle {
   return {
     port,
     async close() {
+      // Stop heartbeat and stale-client sweep intervals.
+      clearInterval(heartbeatInterval);
+      clearInterval(sweepInterval);
+
+      // Stop diagnostics.
+      stopMemoryMonitor();
+      stopHeapSnapshot();
+
+      // Unsubscribe core-event listeners.
+      for (const unsub of eventUnsubs) {
+        unsub();
+      }
+
       // Stop cron runner before draining other subsystems.
       cronRunner.stop();
 

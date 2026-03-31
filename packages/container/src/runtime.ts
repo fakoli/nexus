@@ -9,7 +9,7 @@ import type { ContainerConfig, ContainerState, ContainerStats } from "./types.js
 import type { ParsedImageRef } from "./oci-types.js";
 import { MEDIA_TYPES } from "./oci-types.js";
 import { OciClient, parseImageRef } from "./oci-client.js";
-import { DiskBlobCache, MemoryBlobCache } from "./cache.js";
+import { DiskBlobCache } from "./cache.js";
 import type { BlobCache } from "./oci-client.js";
 import os from "node:os";
 import path from "node:path";

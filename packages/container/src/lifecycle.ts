@@ -239,16 +239,23 @@ export class LifecycleManager {
 
     await new Promise<void>((resolve) => setTimeout(resolve, delay));
 
+    // Re-check: the container may have been removed during the backoff sleep.
+    const currentEntry = this.entries.get(containerId);
+    if (!currentEntry) {
+      log.warn({ containerId }, "Container removed during restart backoff — aborting restart");
+      return;
+    }
+
     try {
-      await entry.container.restart();
+      await currentEntry.container.restart();
       const newCount = (state.restartCount ?? 0) + 1;
-      entry.container.setState({ restartCount: newCount });
+      currentEntry.container.setState({ restartCount: newCount });
       events.emit("container:restarted", { containerId, restartCount: newCount });
       log.info({ containerId, restartCount: newCount }, "Container restarted");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       log.error({ containerId, err: msg }, "Restart failed");
-      entry.container.setState({ status: "failed", error: msg });
+      currentEntry.container.setState({ status: "failed", error: msg });
     }
   }
 }

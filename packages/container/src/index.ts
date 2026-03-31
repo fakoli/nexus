@@ -8,6 +8,7 @@ export {
   OciDigestMismatchError,
   OciBlobNotFoundError,
   InvalidImageRefError,
+  OciSsrfBlockedError,
   DiskBlobCache,
 } from "./oci-client.js";
 export type {
@@ -15,6 +16,9 @@ export type {
   BlobCache,
   TokenCacheEntry,
 } from "./oci-client.js";
+
+// ── OCI auth helpers ──────────────────────────────────────────────────────────
+export { isBlockedHostname, resolveAuth, resolveCredentialForRegistry } from "./oci-auth.js";
 
 // ── Cache ─────────────────────────────────────────────────────────────────────
 export { MemoryBlobCache } from "./cache.js";

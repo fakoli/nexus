@@ -15,6 +15,29 @@ import type { BlobCache } from "./oci-client.js";
 
 const log = createLogger("container:cache");
 
+// ── Path safety helpers ───────────────────────────────────────────────────────
+
+/**
+ * Sanitise a path component: replace any character that is not an alphanumeric,
+ * hyphen, underscore, or dot with an underscore.  This prevents directory
+ * traversal when registry/repo strings are used as directory names.
+ */
+function safePathComponent(s: string): string {
+  return s.replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
+/**
+ * Assert that `resolved` starts with `base` (both path.resolve'd).
+ * Throws if the resulting path escapes the base directory.
+ */
+function assertUnderBase(base: string, resolved: string): void {
+  const normalBase = path.resolve(base) + path.sep;
+  const normalResolved = path.resolve(resolved);
+  if (!normalResolved.startsWith(normalBase) && normalResolved !== path.resolve(base)) {
+    throw new Error(`Path traversal detected: '${resolved}' escapes cache root '${base}'`);
+  }
+}
+
 // ── Disk-backed implementation ────────────────────────────────────────────────
 
 export class DiskBlobCache implements BlobCache {
@@ -64,15 +87,30 @@ export class DiskBlobCache implements BlobCache {
 
   /** Store a manifest JSON string keyed by registry/repo/ref. */
   setManifest(registry: string, repo: string, ref: string, data: string): void {
-    const dir = path.join(this.manifestDir, registry, repo);
+    const safeRegistry = safePathComponent(registry);
+    const safeRepo = safePathComponent(repo);
+    const safeRef = safePathComponent(ref);
+
+    const dir = path.join(this.manifestDir, safeRegistry, safeRepo);
+    assertUnderBase(this.manifestDir, dir);
+
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, `${ref}.json`), data, "utf-8");
+
+    const filePath = path.join(dir, `${safeRef}.json`);
+    assertUnderBase(this.manifestDir, filePath);
+
+    fs.writeFileSync(filePath, data, "utf-8");
   }
 
   /** Retrieve a cached manifest JSON string, or undefined on miss. */
   getManifest(registry: string, repo: string, ref: string): string | undefined {
-    const filePath = path.join(this.manifestDir, registry, repo, `${ref}.json`);
+    const safeRegistry = safePathComponent(registry);
+    const safeRepo = safePathComponent(repo);
+    const safeRef = safePathComponent(ref);
+
+    const filePath = path.join(this.manifestDir, safeRegistry, safeRepo, `${safeRef}.json`);
     try {
+      assertUnderBase(this.manifestDir, filePath);
       return fs.readFileSync(filePath, "utf-8");
     } catch {
       return undefined;

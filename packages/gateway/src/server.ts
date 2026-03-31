@@ -132,6 +132,7 @@ import {
   handleContainerInspect,
   handleContainerLogs,
   handleContainerRemove,
+  shutdownContainerManager,
 } from "./handlers/container.js";
 
 // ── Channel stream handlers ──────────────────────────────────────────
@@ -748,6 +749,9 @@ export function startGateway(portOverride?: number): GatewayHandle {
       // Unload plugins before closing DB
       const loadedIds = await pluginLoadPromise;
       await unloadAllPlugins(loadedIds);
+
+      // Shut down the container lifecycle manager.
+      await shutdownContainerManager();
 
       // Stop federation before closing client connections.
       if (fedConfig.enabled) {

@@ -20,6 +20,17 @@ function getManager(): LifecycleManager {
   return manager;
 }
 
+/**
+ * Gracefully shut down the module-level LifecycleManager.
+ * Called by the gateway's close() method to avoid resource leaks.
+ */
+export async function shutdownContainerManager(): Promise<void> {
+  if (manager) {
+    await manager.shutdown();
+    manager = null;
+  }
+}
+
 // ── Param schemas ────────────────────────────────────────────────────────────
 
 const ContainerRunParams = z.object({

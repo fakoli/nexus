@@ -129,7 +129,7 @@ export function createGatewayClient(
             pending_req.resolve(frame.payload);
           } else {
             pending_req.reject(
-              new Error(frame.error?.message ?? "request failed"),
+              new Error(frame.error?.message || "request failed"),
             );
           }
         }

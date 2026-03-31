@@ -98,7 +98,7 @@ async function runStream(
   appendMessage(sessionId, "user", message);
   recordAudit("agent_stream_start", "system", { sessionId });
 
-  const context = buildContext({
+  const context = await buildContext({
     sessionId,
     tools: getToolDefinitions(),
   });

@@ -11,6 +11,7 @@
     "@nexus/telegram": "*",
     "@nexus/discord": "*",
     "@nexus/plugins": "*",
+    "@nexus/rag": "*",
     "hono": "^4.0.0",
     "ws": "^8.18.0",
     "uuid": "^11.0.0"

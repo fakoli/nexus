@@ -85,6 +85,7 @@ import {
   handleMemoryDelete,
   handleMemorySearch,
   handleMemoryList,
+  handleMemorySemanticSearch,
 } from "./handlers/memory.js";
 import {
   handleAgentsList,
@@ -190,6 +191,7 @@ const handlers: Record<string, Handler> = {
   "memory.delete": handleMemoryDelete,
   "memory.search": handleMemorySearch,
   "memory.list": handleMemoryList,
+  "memory.semantic-search": handleMemorySemanticSearch,
   "speech.tts": handleSpeechTTS,
   "speech.stt": handleSpeechSTT,
   "speech.voices": handleSpeechVoices,

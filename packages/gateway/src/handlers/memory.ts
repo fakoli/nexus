@@ -2,8 +2,12 @@
  * Memory RPC handlers — CRUD operations for agent memory notes.
  */
 import { z } from "zod";
-import { addMemory, getMemory, updateMemory, deleteMemory, searchMemory, listMemory } from "@nexus/core";
+import { addMemory, getMemory, updateMemory, deleteMemory, searchMemory, listMemory, getAllConfig } from "@nexus/core";
+import { createLogger } from "@nexus/core";
+import { createEmbeddingProvider, VectorStore, MemoryIndex } from "@nexus/rag";
 import type { ResponseFrame } from "../protocol/frames.js";
+
+const log = createLogger("gateway:memory");
 
 // ── Schemas ─────────────────────────────────────────────────────────
 
@@ -105,4 +109,71 @@ export function handleMemoryList(params: Record<string, unknown>): ResponseFrame
   }
   const notes = listMemory(parsed.data.scope, parsed.data.limit);
   return { id: "", ok: true, payload: { notes, count: notes.length } };
+}
+
+// ── Semantic search schema ───────────────────────────────────────────
+
+const MemorySemanticSearchParams = z.object({
+  query: z.string().min(1),
+  scope: z.string().optional(),
+  limit: z.number().int().min(1).max(100).default(10),
+  threshold: z.number().min(0).max(1).default(0.7),
+});
+
+export async function handleMemorySemanticSearch(
+  params: Record<string, unknown>,
+): Promise<ResponseFrame> {
+  const parsed = MemorySemanticSearchParams.safeParse(params);
+  if (!parsed.success) {
+    return { id: "", ok: false, error: { code: "INVALID_PARAMS", message: parsed.error.message } };
+  }
+
+  const { query, scope, limit, threshold } = parsed.data;
+
+  const ragConfig = getAllConfig().rag;
+  if (!ragConfig.enabled) {
+    return {
+      id: "",
+      ok: false,
+      error: { code: "RAG_DISABLED", message: "RAG is not enabled in config" },
+    };
+  }
+
+  let vectorStore: VectorStore | undefined;
+  try {
+    const embeddingProvider = createEmbeddingProvider({
+      provider: ragConfig.embeddingProvider,
+      model: ragConfig.embeddingModel,
+    });
+    vectorStore = await VectorStore.connect();
+    const memoryIndex = await MemoryIndex.create({ embeddingProvider, vectorStore });
+
+    const results = await memoryIndex.searchMemory({ query, scope, limit });
+
+    // Filter by threshold and format response
+    const filtered = results
+      .filter((r) => r.score === undefined || r.score >= threshold)
+      .map((r) => ({ note: r.note, score: r.score }));
+
+    return {
+      id: "",
+      ok: true,
+      payload: { results: filtered, count: filtered.length },
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    log.error({ err: msg }, "Semantic memory search failed");
+    return {
+      id: "",
+      ok: false,
+      error: { code: "INTERNAL_ERROR", message: `Semantic search failed: ${msg}` },
+    };
+  } finally {
+    if (vectorStore) {
+      await vectorStore.close().catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        log.error({ err: msg }, "Failed to close vector store after semantic search");
+      });
+    }
+  }
 }

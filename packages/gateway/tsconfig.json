@@ -11,6 +11,7 @@
     { "path": "../agent" },
     { "path": "../channels" },
     { "path": "../plugins" },
+    { "path": "../rag" },
     { "path": "../../extensions/telegram" },
     { "path": "../../extensions/discord" }
   ]

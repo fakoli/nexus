@@ -1,14 +1,11 @@
 {
-  "name": "@nexus/agent",
+  "name": "@nexus/sandbox",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "src/index.ts",
   "dependencies": {
     "@nexus/core": "*",
-    "@nexus/rag": "*",
-    "@nexus/sandbox": "*",
-    "@anthropic-ai/sdk": "^0.52.0",
-    "openai": "^4.80.0"
+    "zod": "^3.24.0"
   }
 }

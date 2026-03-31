@@ -118,6 +118,12 @@ import {
   handleSkillsSearch,
 } from "./handlers/skills.js";
 
+// ── Sandbox handlers ─────────────────────────────────────────────────
+import {
+  handleSandboxStatus,
+  handleSandboxList,
+} from "./handlers/sandbox.js";
+
 // ── Channel stream handlers ──────────────────────────────────────────
 import {
   handleChannelStreamsList,
@@ -216,6 +222,8 @@ const handlers: Record<string, Handler> = {
   "channels.streams.list": handleChannelStreamsList,
   "channels.streams.configure": handleChannelStreamsConfigure,
   "channels.streams.status": handleChannelStreamsStatus,
+  "agents.sandbox.status": handleSandboxStatus,
+  "agents.sandbox.list": handleSandboxList,
 };
 
 log.info({ methods: Object.keys(handlers) }, "RPC handlers registered");

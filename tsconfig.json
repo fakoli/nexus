@@ -40,6 +40,9 @@
       ],
       "@nexus/rag": [
         "./packages/rag/src/index.ts"
+      ],
+      "@nexus/sandbox": [
+        "./packages/sandbox/src/index.ts"
       ]
     }
   },
@@ -70,6 +73,9 @@
     },
     {
       "path": "./packages/rag"
+    },
+    {
+      "path": "./packages/sandbox"
     }
   ],
   "exclude": [

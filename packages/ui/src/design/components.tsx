@@ -1,4 +1,4 @@
-import { type Component, type JSX, type ParentComponent, Show, createSignal } from "solid-js";
+import { type Component, type JSX, type ParentComponent, For, Show, createSignal } from "solid-js";
 import { tokens as t } from "./tokens";
 
 // ── Button ────────────────────────────────────────────────────────────────────
@@ -182,5 +182,132 @@ export const Tooltip: Component<TooltipProps> = (props) => {
         </div>
       </Show>
     </div>
+  );
+};
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+interface SkeletonProps { lines?: number; width?: string; }
+
+export const Skeleton: Component<SkeletonProps> = (props) => {
+  const count = () => props.lines ?? 3;
+  return (
+    <>
+      <style>{`
+        @keyframes skeleton-shimmer {
+          0%   { background-position: -400px 0; }
+          100% { background-position: 400px 0; }
+        }
+        .nx-skeleton-line {
+          background: linear-gradient(90deg, ${t.color.bgCard} 25%, ${t.color.bgHover} 50%, ${t.color.bgCard} 75%);
+          background-size: 800px 100%;
+          animation: skeleton-shimmer 1.4s infinite linear;
+          border-radius: ${t.radius.sm};
+          height: 14px;
+          margin-bottom: ${t.space.sm};
+        }
+      `}</style>
+      <div style={{ width: props.width ?? "100%" }}>
+        <For each={Array.from({ length: count() })}>
+          {(_, i) => (
+            <div
+              class="nx-skeleton-line"
+              style={{ width: i() === count() - 1 ? "60%" : "100%" }}
+            />
+          )}
+        </For>
+      </div>
+    </>
+  );
+};
+
+// ── EmptyState ────────────────────────────────────────────────────────────────
+
+interface EmptyStateProps { icon?: string; title: string; description?: string; }
+
+export const EmptyState: Component<EmptyStateProps> = (props) => (
+  <div style={{
+    display: "flex", "flex-direction": "column", "align-items": "center",
+    "justify-content": "center", padding: t.space.xxl, gap: t.space.md,
+    color: t.color.textMuted, "text-align": "center",
+  }}>
+    <Show when={props.icon}>
+      <span style={{ "font-size": "40px", "line-height": "1" }}>{props.icon}</span>
+    </Show>
+    <span style={{ "font-size": t.font.sizeLg, "font-weight": t.font.weightBold, color: t.color.text }}>
+      {props.title}
+    </span>
+    <Show when={props.description}>
+      <span style={{ "font-size": t.font.sizeMd, color: t.color.textMuted, "max-width": "320px" }}>
+        {props.description}
+      </span>
+    </Show>
+  </div>
+);
+
+// ── ErrorPanel ────────────────────────────────────────────────────────────────
+
+interface ErrorPanelProps { title?: string; message: string; onRetry?: () => void; }
+
+export const ErrorPanel: Component<ErrorPanelProps> = (props) => (
+  <div style={{
+    background: "rgba(244,67,54,0.08)", border: `1px solid ${t.color.error}`,
+    "border-radius": t.radius.lg, padding: t.space.md,
+    display: "flex", "flex-direction": "column", gap: t.space.sm,
+  }} role="alert">
+    <span style={{ "font-weight": t.font.weightBold, color: t.color.error, "font-size": t.font.sizeMd }}>
+      {props.title ?? "Error"}
+    </span>
+    <span style={{ "font-size": t.font.sizeMd, color: t.color.text }}>{props.message}</span>
+    <Show when={props.onRetry}>
+      <button
+        onClick={props.onRetry}
+        style={{
+          "align-self": "flex-start", background: "transparent",
+          border: `1px solid ${t.color.error}`, "border-radius": t.radius.md,
+          color: t.color.error, cursor: "pointer",
+          "font-size": t.font.sizeSm, "font-weight": t.font.weightBold,
+          padding: `4px ${t.space.sm}`,
+        }}
+      >
+        Retry
+      </button>
+    </Show>
+  </div>
+);
+
+// ── Spinner ───────────────────────────────────────────────────────────────────
+
+type SpinnerSize = "sm" | "md" | "lg";
+
+interface SpinnerProps { size?: SpinnerSize; }
+
+const SPINNER_PX: Record<SpinnerSize, string> = { sm: "12px", md: "20px", lg: "32px" };
+
+export const Spinner: Component<SpinnerProps> = (props) => {
+  const sz = () => SPINNER_PX[props.size ?? "md"];
+  return (
+    <>
+      <style>{`
+        @keyframes nx-spin { to { transform: rotate(360deg); } }
+        .nx-spinner {
+          border-radius: 50%;
+          border-top-color: ${t.color.accent};
+          animation: nx-spin 0.7s linear infinite;
+          display: inline-block;
+          flex-shrink: 0;
+        }
+      `}</style>
+      <span
+        class="nx-spinner"
+        style={{
+          width: sz(), height: sz(),
+          border: `2px solid ${t.color.border}`,
+          "border-top-color": t.color.accent,
+        }}
+        aria-label="Loading"
+        role="status"
+      />
+    </>
   );
 };

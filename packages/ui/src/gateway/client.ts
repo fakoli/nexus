@@ -1,10 +1,10 @@
 import { createSignal } from "solid-js";
 import { DEFAULT_GATEWAY_URL } from "../constants";
+import { parseHelloOk, parseResponseFrame, parseEventFrame } from "./validation";
 import type {
   ConnectParams,
   EventFrame,
   EventName,
-  HelloOk,
   RequestFrame,
   RequestMethod,
   ResponseFrame,
@@ -104,12 +104,12 @@ export function createGatewayClient(
       if (!msg || typeof msg !== "object") return;
       const obj = msg as Record<string, unknown>;
 
-      // HelloOk — first message after open
+      // HelloOk — first message after open (has proto + session fields)
       if ("proto" in obj && "session" in obj) {
-        const hello = obj as unknown as HelloOk;
+        const hello = parseHelloOk(obj);
+        if (!hello) return;
         attempt = 0;
         setConnected(true);
-        // Expose session info via a synthetic event so stores can pick it up
         emit("session:created", {
           id: hello.session.id,
           agentId: hello.session.agentId,
@@ -119,13 +119,14 @@ export function createGatewayClient(
       }
 
       // ResponseFrame — matches a pending request
-      if ("id" in obj && ("ok" in obj)) {
-        const frame = obj as unknown as ResponseFrame;
+      if ("id" in obj && "ok" in obj) {
+        const frame = parseResponseFrame(obj);
+        if (!frame) return;
         const pending_req = pending.get(frame.id);
         if (pending_req) {
           pending.delete(frame.id);
           if (frame.ok) {
-            pending_req.resolve(frame.payload ?? {});
+            pending_req.resolve(frame.payload);
           } else {
             pending_req.reject(
               new Error(frame.error?.message ?? "request failed"),
@@ -137,8 +138,9 @@ export function createGatewayClient(
 
       // EventFrame — server push
       if ("event" in obj && "seq" in obj) {
-        const frame = obj as unknown as EventFrame;
-        emit(frame.event, frame.payload ?? {});
+        const frame = parseEventFrame(obj);
+        if (!frame) return;
+        emit(frame.event, frame.payload);
         return;
       }
     };
@@ -161,13 +163,11 @@ export function createGatewayClient(
       intentionalClose = false;
       attempt = 0;
       return new Promise<void>((resolve, reject) => {
-        // Listen for the first HelloOk to resolve
         const unsub = this.onEvent("session:created", () => {
           clearTimeout(timer);
           unsub();
           resolve();
         });
-        // Timeout after 10s — unsub the listener too so it doesn't leak
         const timer = setTimeout(() => {
           unsub();
           reject(new Error("Connection timeout"));

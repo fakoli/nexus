@@ -49,20 +49,24 @@ const Toast: Component = () => {
     }}>
       <For each={toasts()}>
         {(toast) => (
-          <div style={{
-            background: BG[toast.type],
-            border: `1px solid ${BORDER[toast.type]}`,
-            "border-radius": "8px",
-            color: "#e0e0e0",
-            "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-            "font-size": "13px",
-            "line-height": "1.4",
-            padding: "10px 16px",
-            "box-shadow": "0 4px 16px rgba(0,0,0,0.5)",
-            "max-width": "320px",
-            "pointer-events": "auto",
-            animation: "toast-in 0.2s ease",
-          }}>
+          <div
+            role="alert"
+            aria-live="polite"
+            style={{
+              background: BG[toast.type],
+              border: `1px solid ${BORDER[toast.type]}`,
+              "border-radius": "8px",
+              color: "#e0e0e0",
+              "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+              "font-size": "13px",
+              "line-height": "1.4",
+              padding: "10px 16px",
+              "box-shadow": "0 4px 16px rgba(0,0,0,0.5)",
+              "max-width": "320px",
+              "pointer-events": "auto",
+              animation: "toast-in 0.2s ease",
+            }}
+          >
             {toast.message}
           </div>
         )}

@@ -12,7 +12,7 @@ export const tokens = {
     bgOverlay:  "rgba(10, 10, 20, 0.85)",
 
     text:       "#e0e0e0",
-    textMuted:  "#8888aa",
+    textMuted:  "#a0a0c0", // improved contrast (was #8888aa)
     textDim:    "#5a5a7a",
 
     accent:     "#4a9eff",

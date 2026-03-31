@@ -1,6 +1,7 @@
 import { render } from "solid-js/web";
 import App from "./App";
 import "./styles.css";
+import "./design/tokens.css";
 
 const root = document.getElementById("app");
 

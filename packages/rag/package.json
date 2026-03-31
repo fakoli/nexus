@@ -1,0 +1,12 @@
+{
+  "name": "@nexus/rag",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@nexus/core": "*",
+    "@lancedb/lancedb": "^0.13.0",
+    "openai": "^4.80.0"
+  }
+}
